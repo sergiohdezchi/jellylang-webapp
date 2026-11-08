@@ -1,0 +1,31 @@
+source "https://rubygems.org"
+
+gem "rails", "~> 8.1.4"
+gem "pg", "~> 1.5"
+gem "puma", ">= 6.0"
+gem "bootsnap", require: false
+gem "tzinfo-data", platforms: %i[windows jruby]
+
+# Autenticación
+gem "bcrypt", "~> 3.1"
+gem "jwt", "~> 2.9"
+
+# API
+gem "rack-cors"
+
+# Jobs en segundo plano y caché
+gem "sidekiq", "~> 7.3"
+gem "redis", "~> 5.3"
+
+# Parseo de HTML para importar artículos
+gem "nokogiri", ">= 1.16"
+gem "csv"
+
+group :development, :test do
+  gem "debug", platforms: %i[mri windows], require: "debug/prelude"
+  gem "rspec-rails", "~> 7.1"
+end
+
+group :test do
+  gem "webmock", "~> 3.24"
+end

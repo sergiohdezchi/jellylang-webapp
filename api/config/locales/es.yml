@@ -1,0 +1,54 @@
+es:
+  errors:
+    not_found: "No encontrado"
+    unauthorized: "Inicia sesión para continuar"
+    invalid_credentials: "Email o contraseña incorrectos"
+    need_language: "Elige al menos un idioma de estudio"
+    invalid_status: "Estado de palabra no válido"
+    invalid_rating: "Calificación no válida"
+    youtube:
+      invalid_url: "La URL no parece de YouTube"
+      not_youtube: "Esta lección no es un video de YouTube"
+      metadata: "No se pudo leer la información del video"
+      no_subtitles: "El video no tiene subtítulos en '%{language}'. Sube un archivo SRT/VTT."
+      ytdlp_missing: "yt-dlp no está instalado en el servidor"
+    article:
+      invalid_url: "URL no válida o inaccesible"
+      no_text: "No se encontró texto legible en esa página"
+      too_many_redirects: "Demasiadas redirecciones"
+      too_large: "La página es demasiado grande"
+      http_error: "El sitio respondió con el código %{code}"
+      unreachable: "No se pudo acceder al sitio (%{reason})"
+    lesson:
+      empty: "La lección no tiene texto"
+      too_long: "El texto es demasiado largo (máximo %{max} caracteres)"
+      empty_subtitles: "El archivo de subtítulos no contiene texto"
+      file_too_large: "El archivo es demasiado grande (máximo 2 MB)"
+      unsupported_file: "Tipo de archivo no soportado: %{extension}. Usa TXT, SRT o VTT."
+    format: "%{attribute} %{message}"
+    messages:
+      blank: "no puede estar vacío"
+      taken: "ya está en uso"
+      invalid: "no es válido"
+      inclusion: "no está incluido en la lista"
+      too_short: "es demasiado corto (mínimo %{count} caracteres)"
+      too_long: "es demasiado largo (máximo %{count} caracteres)"
+      not_a_number: "no es un número"
+      not_an_integer: "debe ser un número entero"
+      in: "debe estar entre %{count}"
+      confirmation: "no coincide"
+      required: "es obligatorio"
+  activerecord:
+    attributes:
+      user:
+        email: "El email"
+        password: "La contraseña"
+        ui_language: "El idioma de la interfaz"
+        native_language: "El idioma nativo"
+      lesson:
+        title: "El título"
+        course: "El curso"
+      course:
+        title: "El título"
+      user_language:
+        daily_goal: "La meta diaria"

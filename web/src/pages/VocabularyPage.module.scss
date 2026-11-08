@@ -1,0 +1,163 @@
+@use "../styles/mixins" as *;
+
+.exports {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.filters {
+    display: grid;
+    grid-template-columns: 1fr 200px 200px;
+    gap: 12px;
+    margin-bottom: 20px;
+
+    @include tablet {
+        grid-template-columns: 1fr 1fr;
+
+        input {
+            grid-column: 1 / -1;
+        }
+    }
+}
+
+.list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    @include card;
+}
+
+.item {
+    display: flex;
+    gap: 16px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+
+    &:last-child {
+        border-bottom: 0;
+    }
+
+    @include mobile {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+
+.main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.term {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-reading);
+    font-size: 1.12rem;
+    font-weight: 600;
+}
+
+.meaning {
+    width: 100%;
+    padding: 2px 6px;
+    margin-left: -6px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+
+    &:hover {
+        border-color: var(--border);
+    }
+
+    &:focus {
+        outline: none;
+        border-color: var(--accent);
+        background: var(--surface);
+    }
+}
+
+.context {
+    @include truncate(2);
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.source {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.8rem;
+    @include truncate;
+}
+
+.side {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.levels {
+    display: flex;
+    gap: 4px;
+}
+
+.level {
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    border: 2px solid transparent;
+    border-radius: 6px;
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text);
+    cursor: pointer;
+    opacity: 0.45;
+
+    &:hover,
+    &.current {
+        opacity: 1;
+    }
+
+    &.current {
+        border-color: var(--text);
+    }
+
+    &.l1 {
+        background: var(--word-l1);
+    }
+
+    &.l2 {
+        background: var(--word-l2);
+    }
+
+    &.l3 {
+        background: var(--word-l3);
+    }
+
+    &.l4 {
+        background: var(--word-l4);
+    }
+
+    &.known {
+        background: var(--accent-soft);
+        color: var(--accent);
+    }
+}
+
+.pager {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 20px;
+}

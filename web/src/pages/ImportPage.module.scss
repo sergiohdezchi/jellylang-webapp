@@ -1,0 +1,22 @@
+@use "../styles/mixins" as *;
+
+.wrapper {
+    max-width: 720px;
+    margin: 0 auto;
+}
+
+.content {
+    min-height: 280px;
+    font-family: var(--font-reading);
+    font-size: 1rem;
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+    font-size: 0.88rem;
+}

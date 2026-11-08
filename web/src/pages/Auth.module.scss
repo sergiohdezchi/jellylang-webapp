@@ -1,0 +1,108 @@
+@use "../styles/mixins" as *;
+
+.page {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+
+    @include tablet {
+        grid-template-columns: 1fr;
+    }
+}
+
+.hero {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 24px;
+    padding: 48px;
+    background: var(--accent);
+    color: var(--accent-contrast);
+
+    @include tablet {
+        display: none;
+    }
+
+    h1 {
+        font-size: 2.4rem;
+        max-width: 420px;
+    }
+}
+
+.sample {
+    max-width: 440px;
+    padding: 20px 24px;
+    border-radius: var(--radius);
+    background: rgb(255 255 255 / 12%);
+    font-family: var(--font-reading);
+    font-size: 1.15rem;
+    line-height: 1.9;
+
+    .new {
+        background: rgb(147 197 253 / 45%);
+        border-radius: 4px;
+        padding: 1px 3px;
+    }
+
+    .lingq {
+        background: rgb(252 211 77 / 70%);
+        color: #1d2125;
+        border-radius: 4px;
+        padding: 1px 3px;
+    }
+}
+
+.formSide {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 20px;
+}
+
+.form {
+    width: 100%;
+    max-width: 380px;
+
+    h2 {
+        font-size: 1.5rem;
+        margin-bottom: 24px;
+    }
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 32px;
+    font-weight: 700;
+    font-size: 1.2rem;
+
+    span {
+        display: grid;
+        place-items: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: var(--accent);
+        color: var(--accent-contrast);
+    }
+}
+
+.submit {
+    width: 100%;
+    min-height: 44px;
+    margin-top: 8px;
+}
+
+.footer {
+    margin-top: 20px;
+    text-align: center;
+    color: var(--text-muted);
+}
+
+.hint {
+    margin-top: 12px;
+    font-size: 0.85rem;
+    text-align: center;
+    color: var(--text-muted);
+}

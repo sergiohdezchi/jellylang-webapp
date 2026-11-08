@@ -1,0 +1,27 @@
+en:
+  errors:
+    not_found: "Not found"
+    unauthorized: "Please sign in"
+    invalid_credentials: "Invalid email or password"
+    need_language: "Choose at least one language to study"
+    invalid_status: "Invalid word status"
+    invalid_rating: "Invalid rating"
+    youtube:
+      invalid_url: "That doesn't look like a YouTube URL"
+      not_youtube: "This lesson is not a YouTube video"
+      metadata: "Could not read the video information"
+      no_subtitles: "The video has no subtitles in '%{language}'. Upload an SRT/VTT file instead."
+      ytdlp_missing: "yt-dlp is not installed on the server"
+    article:
+      invalid_url: "Invalid or unreachable URL"
+      no_text: "No readable text was found on that page"
+      too_many_redirects: "Too many redirects"
+      too_large: "The page is too large"
+      http_error: "The site responded with status %{code}"
+      unreachable: "Could not reach the site (%{reason})"
+    lesson:
+      empty: "The lesson has no text"
+      too_long: "The text is too long (max %{max} characters)"
+      empty_subtitles: "The subtitle file contains no text"
+      file_too_large: "The file is too large (max 2 MB)"
+      unsupported_file: "Unsupported file type: %{extension}. Use TXT, SRT or VTT."

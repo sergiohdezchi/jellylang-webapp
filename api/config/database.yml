@@ -1,0 +1,20 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  host: <%= ENV.fetch("DB_HOST", "localhost") %>
+  port: <%= ENV.fetch("DB_PORT", 5432) %>
+  username: <%= ENV.fetch("DB_USER", "linguaq") %>
+  password: <%= ENV.fetch("DB_PASSWORD", "linguaq") %>
+  max_connections: <%= ENV.fetch("RAILS_MAX_THREADS", 5).to_i + 5 %>
+
+development:
+  <<: *default
+  database: linguaq_development
+
+test:
+  <<: *default
+  database: linguaq_test
+
+production:
+  <<: *default
+  database: <%= ENV.fetch("DB_NAME", "linguaq_production") %>

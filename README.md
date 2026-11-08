@@ -1,309 +1,141 @@
-# LinguaQ (proyecto estilo LingQ)
+# LinguaQ
 
-Aplicación web para aprender idiomas mediante **lectura y escucha de contenido real**: textos, artículos, podcasts y videos de YouTube. El usuario lee, toca las palabras desconocidas, las guarda como "LingQs" y las repasa con repetición espaciada.
+Aplicación web para aprender idiomas mediante **lectura y escucha de contenido real**: textos, artículos y videos de YouTube. Lees, haces clic en las palabras que no conoces, las guardas como **LingQs** y las repasas con repetición espaciada.
 
-> Nombre provisional: `LinguaQ`. Cámbialo por el que prefieras.
+> Proyecto independiente inspirado en el método de LingQ. "LingQ" es una marca de sus propietarios; aquí solo se usa como nombre genérico de "palabra guardada".
 
-## Stack
+## Inicio rápido
 
-| Capa | Tecnología |
-|------|------------|
-| Contenedores | **Docker** + Docker Compose |
-| Frontend | **React** + TypeScript + Vite |
-| Estilos | **SCSS** (módulos) |
-| Backend | **Ruby on Rails 8** (modo API) |
-| Base de datos | **PostgreSQL** 16 |
-| Caché y colas | **Redis** 7 + Sidekiq |
-| Video | YouTube IFrame Player API |
-| Subtítulos y metadatos | `yt-dlp` dentro del contenedor del backend |
-| Autenticación | `has_secure_password` + JWT |
-| Tests | RSpec (backend), Vitest + Playwright (frontend) |
+Requisitos: **Docker** y **Docker Compose**. No hace falta instalar Ruby, Node ni PostgreSQL.
+
+```bash
+cp .env.example .env        # y cambia SECRET_KEY_BASE y JWT_SECRET
+docker compose up --build
+```
+
+Al arrancar, la API crea la base de datos, ejecuta las migraciones y carga los datos iniciales.
+
+| Servicio | URL |
+|----------|-----|
+| Aplicación | http://localhost:5173 |
+| API | http://localhost:3000/api/v1 |
+| Panel de Sidekiq (solo desarrollo) | http://localhost:3000/sidekiq |
+
+Usuario de demostración: **demo@linguaq.dev / password123** (con una lección de ejemplo en inglés).
+
+---
 
 ## Índice
 
-1. [Características](#características)
-2. [Importación de videos de YouTube](#importación-de-videos-de-youtube)
-3. [Lector sincronizado con el video](#lector-sincronizado-con-el-video)
+1. [Stack](#stack)
+2. [Características](#características)
+3. [Cómo funciona](#cómo-funciona)
 4. [Arquitectura](#arquitectura)
 5. [Modelo de datos](#modelo-de-datos)
 6. [API REST](#api-rest)
 7. [Estructura del proyecto](#estructura-del-proyecto)
-8. [Docker](#docker)
-9. [Puesta en marcha](#puesta-en-marcha)
-10. [Variables de entorno](#variables-de-entorno)
+8. [Desarrollo](#desarrollo)
+9. [Variables de entorno](#variables-de-entorno)
+10. [Solución de problemas](#solución-de-problemas)
 11. [Roadmap](#roadmap)
 12. [Consideraciones legales](#consideraciones-legales)
 
 ---
 
+## Stack
+
+| Capa | Tecnología |
+|------|------------|
+| Contenedores | Docker + Docker Compose |
+| Frontend | React 19 + TypeScript + Vite, React Router, TanStack Query |
+| Estilos | SCSS (módulos + variables CSS, modo claro y oscuro) |
+| Backend | Ruby on Rails 8.1 (modo API), Ruby 3.3 |
+| Base de datos | PostgreSQL 16 |
+| Caché y colas | Redis 7 + Sidekiq |
+| Video | YouTube IFrame Player API (reproductor oficial incrustado) |
+| Subtítulos y metadatos | `yt-dlp` (+ `deno`) en la imagen del backend |
+| Traducción | MyMemory (gratis, sin clave) o DeepL si defines `DEEPL_API_KEY` |
+| Autenticación | `has_secure_password` + JWT |
+| Tests | RSpec + WebMock (backend), Vitest (frontend) |
+
+---
+
 ## Características
 
-### Biblioteca de contenido
-- Importar lecciones desde **texto pegado**, **URL de artículo**, **archivos** (TXT, PDF, EPUB, SRT/VTT), **podcasts (RSS)** y **YouTube**.
-- Organización en cursos, colecciones y etiquetas; filtros por idioma, nivel y estado.
-- Lecciones divididas en páginas para una lectura cómoda.
+### Biblioteca
+- Importar lecciones desde **YouTube**, **texto pegado**, **URL de artículo** y **archivos** TXT, SRT o VTT.
+- Cursos para agrupar lecciones; filtros por curso, nivel y título.
+- Las importaciones de YouTube se procesan en segundo plano y la tarjeta muestra el progreso.
 
-### Lectura interactiva
-- Cada palabra es clicable y abre un panel con traducción y diccionario.
-- Codificación por colores según el conocimiento de la palabra:
-    - Azul: palabra nueva.
-    - Amarillo: palabra guardada (LingQ) con nivel 1 a 4.
-    - Sin color: palabra conocida.
-- Guardar frases completas como LingQ, con su contexto.
-- Marcar palabras como conocidas o ignoradas (nombres propios, números).
-- Marcar toda la página como conocida al avanzar.
+### Lector interactivo
+- Cada palabra es clicable y abre un panel con sugerencias de traducción, diccionarios externos (Google Translate, Wiktionary, Reverso, WordReference) y pronunciación (síntesis de voz del navegador).
+- Colores según el conocimiento:
+  - **Azul**: palabra nueva.
+  - **Amarillo** (de intenso a suave): LingQ de nivel 1 a 4.
+  - **Sin color**: conocida o ignorada.
+- **Frases**: selecciona varias palabras con el ratón para guardarlas como un LingQ; aparecen subrayadas en el texto.
+- Lecciones de texto paginadas (~220 palabras). Al pasar de página, las palabras azules se marcan como conocidas (como en LingQ).
+- Atajos de teclado con el panel abierto: <kbd>1</kbd>–<kbd>4</kbd> nivel, <kbd>K</kbd> conocida, <kbd>X</kbd> ignorar, <kbd>Esc</kbd> cerrar.
+
+### Lector sincronizado con video
+- Video arriba (móvil) o a la izquierda (escritorio) y transcripción con la **frase activa resaltada** y auto-scroll.
+- Clic en el tiempo de una frase para reproducir desde ahí; frase anterior/siguiente, repetir y **bucle de frase**.
+- Velocidad de 0.5× a 2×; pausa automática al abrir una palabra (opcional).
+- Cada LingQ guarda el momento del video: desde el vocabulario o el repaso puedes volver a esa frase (`?t=segundos`).
 
 ### Vocabulario y repaso
-- Lista de LingQs con búsqueda y filtros; exportación a CSV y Anki.
-- Flashcards con repetición espaciada (SM-2 o FSRS).
-- Ejercicios: opción múltiple, escritura y dictado.
-- Cada palabra conserva su frase de origen y, si viene de un video, el momento exacto.
-
-### Audio y video
-- Velocidad variable, repetir frase y saltar 5 segundos.
-- Texto sincronizado con el audio o el video.
+- Lista de LingQs con búsqueda, filtros por nivel y tipo (palabra/frase) y edición en línea del significado.
+- Exportación a **CSV** y a **Anki** (TSV con anverso, reverso con contexto y etiquetas).
+- Repaso con **SM-2** (Otra vez / Difícil / Bien / Fácil) mostrando el próximo intervalo de cada botón.
+- Dos modos: **tarjetas** y **escritura** (escribes la palabra a partir del significado y el contexto).
 
 ### Progreso
-- Palabras conocidas, palabras leídas, tiempo de escucha y racha diaria.
-- Metas diarias y gráficos semanales.
+- Palabras conocidas, LingQs, racha diaria, palabras leídas, horas de escucha y repasos pendientes.
+- Meta diaria de LingQs nuevos por idioma y gráfico de los últimos 7 días.
+- Las estadísticas usan la zona horaria del navegador (cabecera `X-Timezone`).
 
 ### Cuentas e idiomas
-- Registro e inicio de sesión (email y OAuth con Google).
-- Varios idiomas de estudio por usuario.
-- Interfaz en español e inglés (i18n).
-
-### Ideas futuras
-- Extensión de navegador para importar páginas.
-- Soporte para chino, japonés y coreano.
-- Traducción y explicaciones gramaticales con IA.
-- Modo offline (PWA).
+- Registro e inicio de sesión con email.
+- Varios idiomas de estudio por usuario, cada uno con su meta diaria.
+- Idiomas incluidos: inglés, español, francés, alemán, italiano, portugués, neerlandés y ruso.
+- Interfaz en español e inglés.
 
 ---
 
-## Importación de videos de YouTube
+## Cómo funciona
 
-Flujo del usuario:
+### Importación de YouTube
 
-1. Pega una URL de YouTube (`youtube.com/watch?v=...` o `youtu.be/...`).
-2. La API valida la URL, extrae el ID del video y crea una lección en estado `processing`.
-3. Un job de **Sidekiq** obtiene los metadatos y los subtítulos con `yt-dlp`.
-4. El job limpia el texto, lo divide en frases con tiempos y lo guarda como `segments`.
-5. La lección pasa a `ready` y el frontend la abre en el lector con el video incrustado.
+1. El usuario pega una URL (`watch?v=`, `youtu.be/`, `shorts/`, `embed/`, `live/`).
+2. La API extrae el ID, crea la lección en estado `processing` y encola `ImportYoutubeLessonJob`.
+3. El job obtiene los metadatos con `yt-dlp --dump-single-json` y elige la mejor pista de subtítulos:
 
-El frontend consulta el estado de la lección (polling cada 2 segundos o ActionCable sobre Redis) hasta que está lista.
+   | Prioridad | Fuente | Notas |
+   |-----------|--------|-------|
+   | 1 | Subtítulos manuales en el idioma de estudio | Mejor calidad |
+   | 2 | Subtítulos automáticos **en el idioma original** del video | Pueden tener errores; se avisa en el lector |
+   | 3 | Subida manual de SRT/VTT desde la propia lección | Plan B si falla lo anterior |
 
-### Fuentes de la transcripción (por prioridad)
+   Las traducciones automáticas de YouTube se descartan porque no coinciden con el audio.
+4. Se descarga solo el archivo de subtítulos (`--skip-download`), nunca el video.
+5. El texto se limpia y se agrupa en frases con tiempos (`segments`); la lección pasa a `ready`.
 
-| Prioridad | Fuente | Notas |
-|-----------|--------|-------|
-| 1 | Subtítulos manuales | Mejor calidad |
-| 2 | Subtítulos automáticos de YouTube | Pueden tener errores y poca puntuación |
-| 3 | Transcripción con Whisper | Respaldo si el video no tiene subtítulos (opcional) |
-| 4 | Subida manual de SRT/VTT | Último recurso |
+El frontend consulta el estado cada 2 segundos mientras la lección está en `processing`.
 
-### Procesamiento del texto
+Limpieza de subtítulos ([parser.rb](api/app/services/subtitles/parser.rb), [builder.rb](api/app/services/subtitles/builder.rb)):
+- Elimina etiquetas HTML, marcas de tiempo internas y anotaciones como `[Música]` o `♪`.
+- Quita las líneas repetidas en cascada de los subtítulos automáticos.
+- Une fragmentos en frases completas (corta por puntuación final, 200 caracteres, 12 segundos o pausas largas) conservando `start` y `end`.
 
-- Descargar solo los subtítulos, sin el video (`--skip-download`).
-- Eliminar duplicados típicos de los subtítulos automáticos (líneas que se repiten en cascada).
-- Quitar etiquetas como `[Música]` o `[Aplausos]`.
-- Unir fragmentos cortos en frases completas, conservando `start` y `end`.
-- Tokenizar palabras y vincularlas con el vocabulario del usuario.
+### Sincronización del lector
 
-### Ejemplo del servicio (Ruby)
+[useActiveSegment.ts](web/src/hooks/useActiveSegment.ts) consulta `player.getCurrentTime()` cada 200 ms y busca el segmento activo con búsqueda binaria ([segments.ts](web/src/lib/segments.ts)). En los silencios entre frases mantiene resaltada la última que empezó.
 
-```ruby
-# app/services/youtube/fetch_subtitles.rb
-require "open3"
-require "json"
+### Tokenización
 
-module Youtube
-    class FetchSubtitles
-        class Error < StandardError; end
-
-        def initialize(video_id:, language:)
-            @video_id = video_id
-            @language = language
-        end
-
-        def call
-            Dir.mktmpdir do |dir|
-                run_ytdlp(dir)
-                file = Dir.glob(File.join(dir, "*.vtt")).first
-                raise Error, "El video no tiene subtítulos en #{@language}" unless file
-
-                VttParser.new(File.read(file)).segments
-            end
-        end
-
-        private
-
-        def run_ytdlp(dir)
-            _out, err, status = Open3.capture3(
-                "yt-dlp",
-                "--skip-download",
-                "--write-subs",
-                "--write-auto-subs",
-                "--sub-langs", @language,
-                "--sub-format", "vtt",
-                "-o", File.join(dir, "%(id)s"),
-                "https://www.youtube.com/watch?v=#{@video_id}"
-            )
-
-            raise Error, err unless status.success?
-        end
-    end
-end
-```
-
-```ruby
-# app/jobs/import_youtube_lesson_job.rb
-class ImportYoutubeLessonJob
-    include Sidekiq::Job
-    sidekiq_options queue: :imports, retry: 3
-
-    def perform(lesson_id)
-        lesson = Lesson.find(lesson_id)
-        segments = Youtube::FetchSubtitles.new(
-            video_id: lesson.youtube_id,
-            language: lesson.language.code
-        ).call
-
-        Lesson.transaction do
-            lesson.segments.insert_all(
-                segments.each_with_index.map do |seg, index|
-                    seg.merge(lesson_id: lesson.id, position: index)
-                end
-            )
-            lesson.update!(status: :ready)
-        end
-    rescue Youtube::FetchSubtitles::Error => e
-        lesson.update!(status: :failed, error_message: e.message)
-    end
-end
-```
-
----
-
-## Lector sincronizado con el video
-
-El objetivo es **leer el texto mientras el video se reproduce**, con la frase actual resaltada.
-
-### Cómo funciona
-
-1. El video se muestra con la **YouTube IFrame Player API**; no se descarga ni se aloja.
-2. Un temporizador consulta `player.getCurrentTime()` cada ~200 ms.
-3. Se busca el segmento activo con búsqueda binaria sobre `start` y `end`.
-4. Se resalta la frase y se hace auto-scroll para mantenerla visible.
-5. Al hacer clic en una frase, se llama a `player.seekTo(start)`.
-
-### Funciones
-
-- Resaltado de la frase activa.
-- Clic en una frase para reproducirla desde ahí.
-- Repetir frase y bucle de frase.
-- Velocidad de 0.5x a 2x.
-- Pausa automática al abrir una palabra (opcional).
-- Auto-scroll activable y desactivable.
-- Diseño responsive: video arriba y texto abajo en móvil; lado a lado en escritorio.
-
-### Hook de sincronización (React + TypeScript)
-
-```tsx
-// apps/web/src/hooks/useActiveSegment.ts
-import { useEffect, useRef, useState } from "react";
-
-export interface Segment {
-    id: number;
-    position: number;
-    text: string;
-    start: number;
-    end: number;
-}
-
-export function findActiveSegment(segments: Segment[], time: number): number {
-    let low = 0;
-    let high = segments.length - 1;
-
-    while (low <= high) {
-        const mid = Math.floor((low + high) / 2);
-        const segment = segments[mid];
-
-        if (time < segment.start) {
-            high = mid - 1;
-        } else if (time >= segment.end) {
-            low = mid + 1;
-        } else {
-            return mid;
-        }
-    }
-
-    return -1;
-}
-
-export function useActiveSegment(
-    player: YT.Player | null,
-    segments: Segment[]
-) {
-    const [activeIndex, setActiveIndex] = useState(-1);
-    const lastIndex = useRef(-1);
-
-    useEffect(() => {
-        if (!player) return;
-
-        const timer = window.setInterval(() => {
-            const index = findActiveSegment(segments, player.getCurrentTime());
-
-            if (index !== lastIndex.current) {
-                lastIndex.current = index;
-                setActiveIndex(index);
-            }
-        }, 200);
-
-        return () => window.clearInterval(timer);
-    }, [player, segments]);
-
-    return activeIndex;
-}
-```
-
-### Estilos (SCSS)
-
-```scss
-$color-active: #fff3b0;
-$color-new: #cfe3ff;
-$color-saved: #ffe08a;
-
-.reader {
-    display: grid;
-    grid-template-columns: 480px 1fr;
-    gap: 24px;
-
-    @media (max-width: 900px) {
-        grid-template-columns: 1fr;
-    }
-}
-
-.segment {
-    padding: 4px 8px;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 150ms ease;
-
-    &.is-active {
-        background-color: $color-active;
-    }
-
-    .word {
-        &.is-new {
-            background-color: $color-new;
-        }
-
-        &.is-saved {
-            background-color: $color-saved;
-        }
-    }
-}
-```
+El backend y el frontend usan la misma expresión regular para separar palabras y la misma normalización (NFC, minúsculas, apóstrofo recto, sin puntuación en los extremos). Si cambias una, cambia la otra:
+- [api/app/services/text/tokenizer.rb](api/app/services/text/tokenizer.rb)
+- [web/src/lib/tokenize.ts](web/src/lib/tokenize.ts)
 
 ---
 
@@ -311,14 +143,14 @@ $color-saved: #ffe08a;
 
 ```
                     ┌─────────────────────┐
-                    │  web (React + Vite) │
+                    │  web (React + Vite) │  proxy /api → api:3000
                     └───────┬─────────────┘
           IFrame API │      │ REST / JSON
       ┌──────────────┘      ▼
 ┌───────────┐       ┌─────────────────────┐       ┌──────────────┐
 │  YouTube  │       │   api (Rails API)   │ ────► │  PostgreSQL  │
 └───────────┘       └───────┬─────────────┘       └──────────────┘
-                            │ encola jobs
+                            │ encola jobs / caché de traducciones
                             ▼
                     ┌─────────────────────┐       ┌──────────────┐
                     │  worker (Sidekiq)   │ ────► │    Redis     │
@@ -331,246 +163,140 @@ $color-saved: #ffe08a;
 ## Modelo de datos
 
 ```
-users(id, email, password_digest, ui_language)
-languages(id, code, name)
+languages(code, name)
+users(email, password_digest, name, ui_language, native_language, current_language_id)
 user_languages(user_id, language_id, daily_goal)
 
-courses(id, user_id, language_id, title)
-lessons(id, course_id, title, source_type, source_url, youtube_id,
-        audio_url, level, status, error_message)
-segments(id, lesson_id, position, text, start, end)
+courses(user_id, language_id, title, description)
+lessons(user_id, language_id, course_id, title, source_type, source_url, youtube_id,
+        thumbnail_url, author, duration, level, status, subtitle_source, error_message,
+        word_count, progress_page, completed_at, last_opened_at)
+segments(lesson_id, position, paragraph, text, start_time, end_time)
 
-words(id, language_id, term, lemma)
-user_words(id, user_id, word_id, status, level)
-lingqs(id, user_id, word_id, lesson_id, segment_id, meaning, notes,
-       is_phrase, next_review_at, interval, ease)
+words(language_id, term, lemma)                    -- palabras y frases normalizadas
+user_words(user_id, word_id, status, level)        -- ausente = palabra nueva
+lingqs(user_id, word_id, language_id, lesson_id, segment_id, meaning, notes, context,
+       video_time, is_phrase, next_review_at, interval, ease, repetitions)
 
-review_logs(id, user_id, lingq_id, rating, reviewed_at)
-daily_stats(id, user_id, date, words_read, minutes, new_words)
+review_logs(user_id, lingq_id, rating, reviewed_at)
+daily_stats(user_id, language_id, date, words_read, listening_seconds,
+            new_lingqs, known_words, reviews)
 ```
 
+- `lessons.source_type`: `text | url | file | youtube`
 - `lessons.status`: `processing | ready | failed`
-- `user_words.status`: `new | learning | known | ignored`
-- Índices recomendados: `segments(lesson_id, position)`, `words(language_id, term)` único, `lingqs(user_id, next_review_at)`.
+- `user_words.status`: `learning | known | ignored` (el nivel 1–4 solo aplica a `learning`)
+- Índices únicos: `words(language_id, term)`, `user_words(user_id, word_id)`, `lingqs(user_id, word_id)`, `daily_stats(user_id, language_id, date)`.
 
 ---
 
 ## API REST
 
+Todas las rutas cuelgan de `/api/v1` y, salvo registro, login e idiomas, requieren `Authorization: Bearer <token>`.
+
 | Método | Ruta | Descripción |
 |--------|------|-------------|
-| POST | `/api/v1/auth/signup` | Registro |
-| POST | `/api/v1/auth/login` | Login (devuelve JWT) |
-| GET | `/api/v1/lessons` | Listar lecciones |
-| POST | `/api/v1/lessons` | Crear lección (texto, URL) |
-| POST | `/api/v1/lessons/youtube` | Importar desde YouTube |
-| GET | `/api/v1/lessons/:id` | Lección con estado |
-| GET | `/api/v1/lessons/:id/segments` | Segmentos con tiempos |
-| POST | `/api/v1/lingqs` | Guardar palabra o frase |
-| PATCH | `/api/v1/user_words/:id` | Cambiar estado de una palabra |
-| GET | `/api/v1/reviews/due` | Tarjetas pendientes de repaso |
-| POST | `/api/v1/reviews` | Registrar resultado de repaso |
-| GET | `/api/v1/stats` | Estadísticas |
+| POST | `/auth/signup` | Registro (devuelve JWT) |
+| POST | `/auth/login` | Login (devuelve JWT) |
+| GET | `/auth/me` | Usuario actual |
+| PATCH | `/auth/me` | Perfil, idiomas de estudio, metas e idioma actual |
+| GET | `/languages` | Idiomas disponibles |
+| GET, POST, PATCH, DELETE | `/courses` | Cursos |
+| GET | `/lessons` | Listar lecciones (`language_id`, `course_id`, `level`, `q`) |
+| POST | `/lessons` | Crear lección: `source_type` = `text` (`content`), `url` (`url`) o `file` (multipart) |
+| POST | `/lessons/youtube` | Importar desde YouTube (respuesta 202) |
+| GET | `/lessons/:id` | Lección con segmentos, vocabulario del usuario y frases |
+| PATCH | `/lessons/:id` | Título, curso, nivel, `progress_page`, `completed` |
+| DELETE | `/lessons/:id` | Eliminar lección |
+| POST | `/lessons/:id/subtitles` | Subir SRT/VTT manualmente |
+| POST | `/lessons/:id/reimport` | Reintentar la importación de YouTube |
+| GET | `/lingqs` | Listar LingQs (`q`, `level` 1–4 o `known`, `kind`, `page`) |
+| GET | `/lingqs/export` | Exportar (`format_type` = `csv` o `anki`) |
+| POST | `/lingqs` | Guardar palabra o frase |
+| PATCH | `/lingqs/:id` | Significado, notas o nivel |
+| DELETE | `/lingqs/:id` | Eliminar (la palabra vuelve a ser nueva) |
+| PUT | `/user_words` | Cambiar el estado de una palabra (`new`, `learning`, `known`, `ignored`) |
+| POST | `/user_words/bulk` | Marcar como conocidas varias palabras nuevas |
+| GET | `/reviews/due` | Tarjetas pendientes con el intervalo de cada botón |
+| POST | `/reviews` | Registrar resultado (`rating` 1–4) |
+| GET | `/stats` | Estadísticas del idioma |
+| POST | `/stats/activity` | Registrar palabras leídas y segundos de escucha |
+| GET | `/dictionary` | Traducción automática (`term`, `from`, `to`) |
+
+Los errores se devuelven como `{ "error": "mensaje" }` en el idioma de interfaz del usuario.
 
 ---
 
 ## Estructura del proyecto
 
 ```
-linguaq/
-├── api/                         # Rails API
+.
+├── api/                                # Rails API
 │   ├── app/
-│   │   ├── controllers/api/v1/
+│   │   ├── controllers/api/v1/         # auth, lessons, lingqs, user_words, reviews, stats…
+│   │   ├── jobs/                       # ImportYoutubeLessonJob (Sidekiq)
 │   │   ├── models/
-│   │   ├── jobs/
-│   │   ├── services/youtube/
-│   │   └── serializers/
-│   ├── config/
+│   │   └── services/
+│   │       ├── articles/               # extracción de texto de páginas web
+│   │       ├── lessons/                # texto/archivo/subtítulos → segmentos
+│   │       ├── srs/                    # planificador SM-2
+│   │       ├── stats/                  # resumen, racha
+│   │       ├── subtitles/              # parser VTT/SRT y limpieza
+│   │       ├── text/                   # tokenizador y segmentador de frases
+│   │       ├── translation/            # MyMemory / DeepL
+│   │       ├── vocabulary/             # estado de palabras por usuario
+│   │       └── youtube/                # URL y cliente yt-dlp
+│   ├── config/locales/                 # mensajes es/en
 │   ├── db/
 │   ├── spec/
-│   ├── Dockerfile
-│   └── Gemfile
-├── web/                         # React
+│   ├── bin/docker-entrypoint
+│   └── Dockerfile
+├── web/                                # React
 │   ├── src/
+│   │   ├── api/                        # cliente fetch y tipos
+│   │   ├── auth/                       # contexto de sesión
 │   │   ├── components/
-│   │   │   ├── Reader/
-│   │   │   ├── VideoPlayer/
+│   │   │   ├── Layout/
+│   │   │   ├── Reader/                 # TextReader, VideoReader, SegmentText
 │   │   │   └── WordPanel/
-│   │   ├── hooks/
+│   │   ├── hooks/                      # useYouTubePlayer, useActiveSegment, useVocabulary…
+│   │   ├── i18n/                       # mensajes es/en
+│   │   ├── lib/                        # tokenize, segments, format (+ tests)
 │   │   ├── pages/
-│   │   ├── styles/              # SCSS: variables, mixins, base
-│   │   └── api/
-│   ├── Dockerfile
-│   └── package.json
+│   │   └── styles/                     # variables, mixins, estilos globales
+│   └── Dockerfile
 ├── docker-compose.yml
 ├── .env.example
-├── .gitignore
 └── README.md
 ```
 
 ---
 
-## Docker
-
-### `docker-compose.yml`
-
-```yaml
-services:
-    db:
-        image: postgres:16-alpine
-        environment:
-            POSTGRES_USER: linguaq
-            POSTGRES_PASSWORD: linguaq
-            POSTGRES_DB: linguaq_development
-        volumes:
-            - postgres_data:/var/lib/postgresql/data
-        ports:
-            - "5432:5432"
-        healthcheck:
-            test: ["CMD-SHELL", "pg_isready -U linguaq"]
-            interval: 5s
-            retries: 10
-
-    redis:
-        image: redis:7-alpine
-        volumes:
-            - redis_data:/data
-        ports:
-            - "6379:6379"
-        healthcheck:
-            test: ["CMD", "redis-cli", "ping"]
-            interval: 5s
-            retries: 10
-
-    api:
-        build: ./api
-        command: bin/rails server -b 0.0.0.0 -p 3000
-        env_file: .env
-        volumes:
-            - ./api:/rails
-            - bundle_cache:/usr/local/bundle
-        ports:
-            - "3000:3000"
-        depends_on:
-            db:
-                condition: service_healthy
-            redis:
-                condition: service_healthy
-
-    worker:
-        build: ./api
-        command: bundle exec sidekiq -C config/sidekiq.yml
-        env_file: .env
-        volumes:
-            - ./api:/rails
-            - bundle_cache:/usr/local/bundle
-        depends_on:
-            - api
-
-    web:
-        build: ./web
-        command: npm run dev -- --host 0.0.0.0
-        env_file: .env
-        volumes:
-            - ./web:/app
-            - /app/node_modules
-        ports:
-            - "5173:5173"
-        depends_on:
-            - api
-
-volumes:
-    postgres_data:
-    redis_data:
-    bundle_cache:
-```
-
-### `api/Dockerfile`
-
-```dockerfile
-FROM ruby:3.3-slim
-
-RUN apt-get update -qq && apt-get install -y --no-install-recommends \
-    build-essential libpq-dev libyaml-dev git curl python3 ffmpeg \
-    && rm -rf /var/lib/apt/lists/*
-
-# yt-dlp para obtener subtítulos y metadatos
-RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp \
-    -o /usr/local/bin/yt-dlp && chmod a+rx /usr/local/bin/yt-dlp
-
-WORKDIR /rails
-
-COPY Gemfile Gemfile.lock ./
-RUN bundle install
-
-COPY . .
-
-EXPOSE 3000
-```
-
-### `web/Dockerfile`
-
-```dockerfile
-FROM node:20-alpine
-
-WORKDIR /app
-
-COPY package*.json ./
-RUN npm install
-
-COPY . .
-
-EXPOSE 5173
-```
-
----
-
-## Puesta en marcha
-
-Requisitos: **Docker** y **Docker Compose**. No necesitas instalar Ruby, Node ni PostgreSQL en tu máquina.
+## Desarrollo
 
 ```bash
-# 1. Crear la carpeta del proyecto
-mkdir linguaq && cd linguaq
-git init
-
-# 2. Generar la API de Rails (una sola vez, usando Docker)
-docker run --rm -v "$PWD":/work -w /work ruby:3.3 bash -c \
-    "gem install rails && rails new api --api --database=postgresql --skip-test --skip-git"
-
-# 3. Generar el frontend de React (una sola vez)
-docker run --rm -v "$PWD":/work -w /work node:20-alpine \
-    npm create vite@latest web -- --template react-ts
-
-# 4. Agregar gems y paquetes
-#    api/Gemfile  -> sidekiq, redis, jwt, bcrypt, rack-cors, rspec-rails
-#    web          -> sass, react-router-dom, @tanstack/react-query
-
-# 5. Crear los archivos de la sección Docker y copiar .env.example a .env
-cp .env.example .env
-
-# 6. Construir y levantar todo
-docker compose up --build
-
-# 7. Preparar la base de datos
-docker compose exec api bin/rails db:create db:migrate db:seed
+docker compose logs -f api worker                     # logs
+docker compose exec api bin/rails console             # consola de Rails
+docker compose exec api bin/rails db:migrate          # nuevas migraciones
+docker compose down                                   # apagar
+docker compose down -v                                # apagar y borrar datos
 ```
 
-| Servicio | URL |
-|----------|-----|
-| Frontend | http://localhost:5173 |
-| API | http://localhost:3000 |
-| Panel de Sidekiq | http://localhost:3000/sidekiq (solo desarrollo) |
-
-Comandos útiles:
+Tests:
 
 ```bash
-docker compose logs -f api worker     # ver logs
-docker compose exec api bundle exec rspec   # tests del backend
-docker compose exec web npm test      # tests del frontend
-docker compose exec api bin/rails console
-docker compose down -v                # apagar y borrar datos
+# Backend (la primera vez crea la base de datos de test)
+docker compose exec -e RAILS_ENV=test api bash -c "bin/rails db:prepare && bundle exec rspec"
+
+# Frontend
+docker compose exec web npm test
+docker compose exec web npm run typecheck
 ```
+
+Notas:
+- El código se monta como volumen: los cambios se recargan sin reconstruir. Si cambias el `Gemfile` o `package.json`, basta con reiniciar el servicio (`docker compose restart api worker` o `web`): el arranque instala lo que falte.
+- Los contenedores usan tu UID/GID (por defecto 1000) para que los archivos generados no queden como `root`. Si tu usuario tiene otro UID, exporta `UID` y `GID` antes de construir.
+- El frontend llama a `/api/v1` y Vite lo redirige al contenedor `api`, así que en desarrollo no hay CORS.
 
 ---
 
@@ -579,70 +305,85 @@ docker compose down -v                # apagar y borrar datos
 `.env.example`:
 
 ```env
-# Base de datos y Redis
-DATABASE_URL=postgresql://linguaq:linguaq@db:5432/linguaq_development
-REDIS_URL=redis://redis:6379/0
+# Base de datos (el host y Redis los fija docker-compose.yml)
+DB_USER=linguaq
+DB_PASSWORD=linguaq
 
 # Rails
 RAILS_ENV=development
-SECRET_KEY_BASE=cambia-esto
-JWT_SECRET=cambia-esto
+SECRET_KEY_BASE=cambia-esto-por-una-cadena-larga-y-aleatoria
+JWT_SECRET=cambia-esto-tambien
 CORS_ORIGINS=http://localhost:5173
 
-# Servicios externos (opcionales)
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-TRANSLATE_API_KEY=
-OPENAI_API_KEY=
+# Traducción: con DEEPL_API_KEY se usa DeepL; vacío = MyMemory (gratis, sin clave)
+DEEPL_API_KEY=
 
-# Frontend
-VITE_API_URL=http://localhost:3000/api/v1
+# Puertos publicados en el host
+API_PORT=3000
+WEB_PORT=5173
 ```
 
-> No subas `.env` al repositorio. Agrégalo a `.gitignore`.
+Genera secretos con `openssl rand -hex 64`. No subas `.env` al repositorio (ya está en `.gitignore`).
+
+---
+
+## Solución de problemas
+
+| Problema | Solución |
+|----------|----------|
+| Puerto 3000 o 5173 ocupado | Cambia `API_PORT` o `WEB_PORT` en `.env`. |
+| Quiero conectarme a PostgreSQL desde el host | PostgreSQL y Redis no publican puertos para no chocar con instalaciones locales. Descomenta `ports` en el servicio `db` (usa `5433:5432`). |
+| El video falla con "Sign in to confirm…" o error 429 | YouTube limita las peticiones. Espera y usa **Reintentar**, o sube el SRT/VTT desde la lección. |
+| `yt-dlp` deja de funcionar | Reconstruye la imagen para obtener la última versión: `docker compose build --no-cache api worker`. |
+| No aparecen sugerencias de traducción | MyMemory tiene un límite diario por IP. Define `DEEPL_API_KEY` o escribe el significado a mano. |
+| Los cambios del frontend no se recargan | En algunos sistemas los volúmenes no emiten eventos: añade `CHOKIDAR_USEPOLLING=true` al servicio `web`. |
 
 ---
 
 ## Roadmap
 
 **Fase 1 - Base**
-- [ ] Docker Compose con Rails, React, PostgreSQL, Redis y Sidekiq
-- [ ] Autenticación con JWT y gestión de idiomas
-- [ ] Importar texto pegado y URL
-- [ ] Lector con palabras clicables y panel de traducción
-- [ ] Guardar LingQs y estados de palabra
+- [x] Docker Compose con Rails, React, PostgreSQL, Redis y Sidekiq
+- [x] Autenticación con JWT y gestión de idiomas
+- [x] Importar texto pegado, URL de artículo y archivos TXT/SRT/VTT
+- [x] Lector con palabras clicables, panel de traducción y frases
+- [x] Guardar LingQs y estados de palabra
 
 **Fase 2 - YouTube**
-- [ ] Importar video por URL con metadatos
-- [ ] Job de Sidekiq para extraer y limpiar subtítulos
-- [ ] Reproductor IFrame con frase activa resaltada
-- [ ] Clic para saltar, repetir frase y velocidad
+- [x] Importar video por URL con metadatos
+- [x] Job de Sidekiq para extraer y limpiar subtítulos
+- [x] Reproductor IFrame con frase activa resaltada
+- [x] Clic para saltar, repetir frase, bucle y velocidad
+- [x] Subida manual de SRT/VTT como plan B
 
 **Fase 3 - Repaso**
-- [ ] Flashcards con SM-2 o FSRS
-- [ ] Estadísticas y rachas
-- [ ] Exportar a Anki
+- [x] Flashcards con SM-2 y modo escritura
+- [x] Estadísticas, metas diarias y rachas
+- [x] Exportar a CSV y Anki
+- [ ] Ejercicios de opción múltiple y dictado
+- [ ] FSRS como alternativa a SM-2
 
 **Fase 4 - Extras**
+- [ ] Importar PDF, EPUB y podcasts (RSS) con audio sincronizado
+- [ ] OAuth con Google
 - [ ] Respaldo con Whisper para videos sin subtítulos
-- [ ] Soporte para CJK
-- [ ] Extensión de navegador
+- [ ] Soporte para chino, japonés y coreano (requiere segmentación de palabras)
+- [ ] Extensión de navegador para importar páginas
 - [ ] PWA y modo offline
-- [ ] Traducción y gramática con IA
-- [ ] Configuración de producción (imagen optimizada, CI/CD)
+- [ ] Traducción y explicaciones gramaticales con IA
+- [ ] Tests end-to-end con Playwright
+- [ ] Configuración de producción (imágenes optimizadas, build estático del frontend, CI/CD)
 
 ---
 
 ## Consideraciones legales
 
-- Reproduce los videos **solo con el reproductor oficial incrustado** de YouTube; no descargues ni redistribuyas el video.
-- Respeta los [Términos de Servicio de YouTube](https://www.youtube.com/t/terms) y la política de la API.
-- Las transcripciones pertenecen a sus autores: úsalas para el estudio personal del usuario y no las publiques como contenido propio.
-- `yt-dlp` puede dejar de funcionar si YouTube cambia su sitio; actualiza la imagen con regularidad y ten un plan B (subida manual de SRT/VTT).
-- LingQ es una marca de sus propietarios; este proyecto es independiente. Usa un nombre y un diseño propios.
-
----
+- Los videos se reproducen **solo con el reproductor oficial incrustado** de YouTube; no se descargan ni se redistribuyen.
+- Respeta los [Términos de Servicio de YouTube](https://www.youtube.com/t/terms) y la política de su API.
+- Las transcripciones y los artículos pertenecen a sus autores: úsalos para el estudio personal y no los publiques como contenido propio.
+- La importación de artículos bloquea direcciones de red privadas para evitar SSRF, pero si despliegas el proyecto públicamente revisa también límites de uso.
+- `yt-dlp` puede dejar de funcionar si YouTube cambia su sitio: actualiza la imagen con regularidad y mantén la subida manual de subtítulos como alternativa.
 
 ## Licencia
 
-MIT (o la que elijas).
+MIT.

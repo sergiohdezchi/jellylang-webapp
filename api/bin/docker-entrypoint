@@ -1,0 +1,13 @@
+#!/bin/bash
+set -e
+
+# Instala gems nuevas si cambió el Gemfile (el bundle vive en un volumen).
+bundle check > /dev/null 2>&1 || bundle install
+
+# Solo el servidor web prepara la base de datos (crea, migra y siembra).
+if [ "$1" = "bin/rails" ] && [ "$2" = "server" ]; then
+  rm -f tmp/pids/server.pid
+  bin/rails db:prepare
+fi
+
+exec "$@"

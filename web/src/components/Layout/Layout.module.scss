@@ -1,0 +1,142 @@
+@use "../../styles/mixins" as *;
+
+.shell {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    height: $header-height;
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+}
+
+.inner {
+    height: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    @include mobile {
+        padding: 0 12px;
+        gap: 8px;
+    }
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text);
+    font-weight: 700;
+    font-size: 1.1rem;
+
+    &:hover {
+        text-decoration: none;
+    }
+}
+
+.logo {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: var(--accent);
+    color: var(--accent-contrast);
+    font-weight: 800;
+}
+
+.brandName {
+    @include tablet {
+        display: none;
+    }
+}
+
+.nav {
+    display: flex;
+    gap: 4px;
+    flex: 1;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.navLink {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    font-weight: 500;
+    white-space: nowrap;
+
+    &:hover {
+        background: var(--surface-2);
+        color: var(--text);
+        text-decoration: none;
+    }
+
+    &.active {
+        color: var(--accent);
+        background: var(--accent-soft);
+    }
+}
+
+.navLabel {
+    @include mobile {
+        display: none;
+    }
+}
+
+.count {
+    min-width: 20px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--accent-contrast);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-align: center;
+    line-height: 20px;
+
+    @include mobile {
+        position: absolute;
+        top: 0;
+        right: 0;
+        min-width: 16px;
+        line-height: 16px;
+        padding: 0 4px;
+    }
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+}
+
+.languageSelect {
+    height: 36px;
+    padding: 0 6px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+    font-weight: 600;
+}
+
+.main {
+    flex: 1;
+}

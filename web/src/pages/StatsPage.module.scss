@@ -1,0 +1,189 @@
+@use "../styles/mixins" as *;
+
+.tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.tile {
+    @include card;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 16px;
+}
+
+.tileLabel {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+.tileValue {
+    font-size: 1.6rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.columns {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 20px;
+
+    @include tablet {
+        grid-template-columns: 1fr;
+    }
+}
+
+.goal {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    text-align: center;
+
+    h2 {
+        align-self: flex-start;
+    }
+
+    p {
+        margin: 0;
+        color: var(--text-muted);
+    }
+}
+
+.ring {
+    --pct: 0%;
+    display: grid;
+    place-items: center;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background:
+        radial-gradient(closest-side, var(--surface) 78%, transparent 79%),
+        conic-gradient(var(--accent) var(--pct), var(--surface-2) 0);
+
+    span {
+        font-size: 1.8rem;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+    }
+}
+
+.chartCard {
+    min-width: 0;
+}
+
+.chartHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 20px;
+
+    h2 {
+        margin: 0;
+    }
+
+    select {
+        width: auto;
+    }
+}
+
+.chart {
+    position: relative;
+    height: 200px;
+    margin-left: 36px;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    align-items: end;
+    border-bottom: 1px solid var(--border);
+}
+
+.gridline {
+    position: absolute;
+    left: 0;
+    right: 0;
+    border-top: 1px dashed var(--border);
+    pointer-events: none;
+
+    span {
+        position: absolute;
+        right: calc(100% + 8px);
+        top: -0.6em;
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        font-variant-numeric: tabular-nums;
+    }
+}
+
+.barSlot {
+    position: relative;
+    height: 100%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 0 2px;
+    cursor: default;
+
+    &.hover {
+        background: var(--surface-2);
+        border-radius: 6px 6px 0 0;
+    }
+}
+
+.bar {
+    width: min(36px, 70%);
+    min-height: 2px;
+    background: var(--accent);
+    border-radius: 4px 4px 0 0;
+    transition: height 250ms ease;
+}
+
+.tooltip {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    box-shadow: var(--shadow);
+    white-space: nowrap;
+    font-size: 0.8rem;
+    pointer-events: none;
+
+    strong {
+        font-size: 1rem;
+    }
+
+    span {
+        color: var(--text-muted);
+    }
+}
+
+.axis {
+    margin-left: 36px;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    padding-top: 6px;
+    text-align: center;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    text-transform: capitalize;
+}
+
+.today {
+    color: var(--text);
+    font-weight: 600;
+}

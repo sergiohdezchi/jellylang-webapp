@@ -1,0 +1,63 @@
+@use "../../styles/mixins" as *;
+
+.word {
+    border-radius: 4px;
+    padding: 0.05em 0.08em;
+    margin: 0 -0.08em;
+    cursor: pointer;
+    transition:
+        background-color 120ms ease,
+        box-shadow 120ms ease;
+
+    &:hover {
+        box-shadow: inset 0 -2px 0 var(--accent);
+    }
+}
+
+.new {
+    background: var(--word-new);
+
+    &:hover {
+        background: var(--word-new-hover);
+    }
+}
+
+.l1 {
+    background: var(--word-l1);
+}
+
+.l2 {
+    background: var(--word-l2);
+}
+
+.l3 {
+    background: var(--word-l3);
+}
+
+.l4 {
+    background: var(--word-l4);
+}
+
+// Palabras que forman parte de una frase guardada: subrayado del color del nivel
+.inPhrase {
+    text-decoration: underline;
+    text-decoration-thickness: 3px;
+    text-underline-offset: 4px;
+    text-decoration-color: var(--word-l1);
+}
+
+.p2 {
+    text-decoration-color: var(--word-l2);
+}
+
+.p3 {
+    text-decoration-color: var(--word-l3);
+}
+
+.p4 {
+    text-decoration-color: var(--word-l4);
+}
+
+.selected {
+    box-shadow: 0 0 0 2px var(--word-selected);
+}

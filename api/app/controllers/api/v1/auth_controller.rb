@@ -1,0 +1,68 @@
+module Api
+  module V1
+    class AuthController < ApplicationController
+      skip_before_action :authenticate!, only: %i[signup login]
+
+      def signup
+        user = User.new(params.permit(:email, :password, :name, :ui_language, :native_language))
+        User.transaction do
+          user.save!
+          if (language = Language.find_by(id: params[:study_language_id]))
+            user.user_languages.create!(language: language)
+            user.update!(current_language: language)
+          end
+        end
+        render json: { token: JsonWebToken.encode(user.id), user: user }, status: :created
+      end
+
+      def login
+        user = User.find_by("lower(email) = ?", params[:email].to_s.strip.downcase)
+        if user&.authenticate(params[:password].to_s)
+          render json: { token: JsonWebToken.encode(user.id), user: user }
+        else
+          render_error(I18n.t("errors.invalid_credentials"), :unauthorized)
+        end
+      end
+
+      def me
+        render json: current_user
+      end
+
+      # Actualiza perfil, idioma actual e idiomas de estudio con su meta diaria.
+      def update
+        User.transaction do
+          current_user.update!(params.permit(:name, :ui_language, :native_language))
+
+          if params.key?(:study_languages)
+            sync_study_languages(params.require(:study_languages))
+          end
+
+          if params[:current_language_id].present?
+            language = Language.find(params[:current_language_id])
+            current_user.user_languages.find_or_create_by!(language: language)
+            current_user.update!(current_language: language)
+          end
+        end
+        render json: current_user.reload
+      end
+
+      private
+
+      def sync_study_languages(list)
+        entries = Array(list).map { |item| item.permit(:language_id, :daily_goal) }
+        ids = entries.map { |e| e[:language_id].to_i }
+        raise ApiError, I18n.t("errors.need_language") if ids.empty?
+
+        current_user.user_languages.where.not(language_id: ids).delete_all
+        entries.each do |entry|
+          record = current_user.user_languages.find_or_initialize_by(language: Language.find(entry[:language_id]))
+          record.daily_goal = entry[:daily_goal].presence || record.daily_goal
+          record.save!
+        end
+        unless ids.include?(current_user.current_language_id)
+          current_user.update!(current_language_id: ids.first)
+        end
+      end
+    end
+  end
+end

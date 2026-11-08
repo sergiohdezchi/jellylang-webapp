@@ -1,0 +1,154 @@
+@use "../styles/mixins" as *;
+
+.wrapper {
+    max-width: 640px;
+    margin: 0 auto;
+}
+
+.flashcard {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    min-height: 320px;
+    padding: 28px;
+
+    @include mobile {
+        padding: 20px;
+    }
+}
+
+.front {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-align: center;
+}
+
+.term {
+    margin: 0;
+    font-family: var(--font-reading);
+    font-size: 2.2rem;
+    font-weight: 600;
+    word-break: break-word;
+}
+
+.prompt {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.context {
+    margin: 0;
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+    font-family: var(--font-reading);
+    font-size: 1.05rem;
+    line-height: 1.7;
+    text-align: center;
+
+    mark {
+        background: var(--word-l1);
+        color: inherit;
+        border-radius: 3px;
+        padding: 0 2px;
+    }
+}
+
+.blank {
+    letter-spacing: 1px;
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.writeForm {
+    display: flex;
+    gap: 8px;
+}
+
+.answer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--border);
+    text-align: center;
+
+    .alert {
+        width: 100%;
+        margin: 0;
+    }
+}
+
+.meaning {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.source {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.85rem;
+}
+
+.reveal {
+    margin-top: auto;
+    min-height: 48px;
+}
+
+.ratings {
+    margin-top: auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+
+    @include mobile {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.rating {
+    flex-direction: column;
+    gap: 2px;
+    min-height: 58px;
+
+    small {
+        font-size: 0.75rem;
+        font-weight: 400;
+        opacity: 0.8;
+    }
+
+    &[data-rating="1"]:not(:global(.primary)) {
+        color: var(--danger);
+    }
+}
+
+.finished {
+    max-width: 520px;
+    margin: 40px auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    text-align: center;
+    color: var(--accent);
+
+    h1,
+    p {
+        margin: 0;
+    }
+
+    h1 {
+        color: var(--text);
+    }
+}
+
+.finishedActions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
