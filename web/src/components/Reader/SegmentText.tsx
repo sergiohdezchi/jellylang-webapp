@@ -8,6 +8,8 @@ interface Props {
     entries: Map<string, VocabEntry>;
     phraseMarks?: Map<number, PhraseEntry>;
     selectedTerm: string | null;
+    /** Índice de la palabra que se está pronunciando en este segmento (-1 si ninguna) */
+    activeWord?: number;
     onWordClick: (term: string, display: string, prepared: PreparedSegment, phrase?: PhraseEntry) => void;
 }
 
@@ -17,7 +19,7 @@ export function wordClass(entry: VocabEntry | undefined): string {
     return "";
 }
 
-function SegmentText({ prepared, entries, phraseMarks, selectedTerm, onWordClick }: Props) {
+function SegmentText({ prepared, entries, phraseMarks, selectedTerm, activeWord = -1, onWordClick }: Props) {
     const handleClick = (event: MouseEvent<HTMLSpanElement>, term: string, display: string, phrase?: PhraseEntry) => {
         // Si el usuario está seleccionando varias palabras, el clic lo gestiona la selección de frase
         const selection = window.getSelection()?.toString().trim() ?? "";
@@ -34,12 +36,17 @@ function SegmentText({ prepared, entries, phraseMarks, selectedTerm, onWordClick
                 const phrase = phraseMarks?.get(token.index);
                 const classes = [styles.word, wordClass(entries.get(token.term))];
                 if (phrase) classes.push(styles.inPhrase, styles[`p${phrase.level}`] ?? "");
-                if (selectedTerm === token.term) classes.push(styles.selected);
+                const selected = selectedTerm === token.term;
+                const speaking = activeWord === token.index;
+                if (selected) classes.push(styles.selected);
+                if (speaking) classes.push(styles.speaking);
 
                 return (
                     <span
                         key={i}
                         className={classes.join(" ")}
+                        data-selected={selected || undefined}
+                        data-speaking={speaking || undefined}
                         title={phrase?.meaning ? `${phrase.term}: ${phrase.meaning}` : undefined}
                         onClick={(e) => handleClick(e, token.term, token.text, phrase)}
                     >

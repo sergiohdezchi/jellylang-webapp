@@ -61,3 +61,14 @@
 .selected {
     box-shadow: 0 0 0 2px var(--word-selected);
 }
+
+// Palabra que se está pronunciando (video o voz)
+.speaking {
+    background: var(--accent);
+    color: var(--accent-contrast);
+    box-shadow: 0 0 0 2px var(--accent);
+
+    &:hover {
+        background: var(--accent);
+    }
+}

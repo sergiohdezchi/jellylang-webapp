@@ -50,6 +50,8 @@ export interface Segment {
     text: string;
     start: number | null;
     end: number | null;
+    /** Inicio de cada palabra (subtítulos automáticos de YouTube); null donde no se conoce */
+    word_times: (number | null)[] | null;
 }
 
 export type WordStatus = "new" | "learning" | "known" | "ignored";

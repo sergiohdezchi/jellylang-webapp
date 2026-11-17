@@ -32,7 +32,8 @@ class Lesson < ApplicationRecord
               paragraph: row[:paragraph] || index,
               text: row[:text],
               start_time: row[:start_time],
-              end_time: row[:end_time]
+              end_time: row[:end_time],
+              word_times: row[:word_times]
             }
           end
         )

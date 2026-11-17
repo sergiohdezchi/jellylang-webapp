@@ -78,10 +78,23 @@ Usuario de demostración: **demo@linguaq.dev / password123** (con una lección d
 - Atajos de teclado con el panel abierto: <kbd>1</kbd>–<kbd>4</kbd> nivel, <kbd>K</kbd> conocida, <kbd>X</kbd> ignorar, <kbd>Esc</kbd> cerrar.
 
 ### Lector sincronizado con video
-- Video arriba (móvil) o a la izquierda (escritorio) y transcripción con la **frase activa resaltada** y auto-scroll.
+- Video arriba (móvil) o a la izquierda (escritorio) y transcripción con la **frase activa resaltada**.
+- Además se marca la **palabra que se está diciendo**, pero solo cuando hay tiempos reales por palabra: los subtítulos automáticos de YouTube (error típico de unas decenas de ms). Con subtítulos manuales YouTube no da ese dato, y como estimarlo marcaba palabras equivocadas, se resalta solo la frase.
 - Clic en el tiempo de una frase para reproducir desde ahí; frase anterior/siguiente, repetir y **bucle de frase**.
 - Velocidad de 0.5× a 2×; pausa automática al abrir una palabra (opcional).
 - Cada LingQ guarda el momento del video: desde el vocabulario o el repaso puedes volver a esa frase (`?t=segundos`).
+
+### Lectura en voz alta de textos
+- Las lecciones de texto, artículos y archivos se pueden **escuchar** con la síntesis de voz del navegador, con los mismos controles que el video (frase anterior/siguiente, repetir, bucle, velocidad).
+- Se resalta la frase que se lee y, si la voz informa de ello, también la palabra; al terminar la página, el lector pasa a la siguiente.
+- La voz se elige en el menú de ajustes de reproducción (se recuerda por idioma). Las voces disponibles dependen del navegador y del sistema operativo.
+- Desde el panel de una palabra, **Escuchar frase** reproduce (video o voz) la frase donde aparece.
+
+### Seguimiento del texto y móvil
+- El auto-scroll mantiene la palabra que suena en la **zona visible real**: debajo de la cabecera, del video o de la barra de audio, y por encima del panel de palabra en móvil. Solo desplaza cuando lo leído sale de la zona cómoda.
+- Si haces scroll a mano, el seguimiento se detiene unos segundos para no pelear contigo.
+- Las opciones de reproducción (auto-scroll, pausa al abrir palabra, voz) están en un menú compacto; los avisos ya no quedan fijos sobre el texto.
+- En pantallas de menos de 1240 px el panel de palabra es una hoja inferior; con el video en pausa y una palabra abierta, el video deja de estar fijo para ganar espacio.
 
 ### Vocabulario y repaso
 - Lista de LingQs con búsqueda, filtros por nivel y tipo (palabra/frase) y edición en línea del significado.
@@ -119,6 +132,7 @@ Usuario de demostración: **demo@linguaq.dev / password123** (con una lección d
    Las traducciones automáticas de YouTube se descartan porque no coinciden con el audio.
 4. Se descarga solo el archivo de subtítulos (`--skip-download`), nunca el video.
 5. El texto se limpia y se agrupa en frases con tiempos (`segments`); la lección pasa a `ready`.
+   Si los subtítulos traen el inicio de cada palabra (los automáticos de YouTube: `hola<00:00:01.230><c> mundo</c>`), se guardan en `segments.word_times`. Los videos importados antes de este dato, o que ya tenían subtítulos manuales, no lo tienen.
 
 El frontend consulta el estado cada 2 segundos mientras la lección está en `processing`.
 
@@ -129,7 +143,11 @@ Limpieza de subtítulos ([parser.rb](api/app/services/subtitles/parser.rb), [bui
 
 ### Sincronización del lector
 
-[useActiveSegment.ts](web/src/hooks/useActiveSegment.ts) consulta `player.getCurrentTime()` cada 200 ms y busca el segmento activo con búsqueda binaria ([segments.ts](web/src/lib/segments.ts)). En los silencios entre frases mantiene resaltada la última que empezó.
+Video y voz implementan el mismo contrato [`Playback`](web/src/components/Reader/playback.ts) (frase activa, palabra activa, reproducir, saltar, bucle, velocidad), así que comparten controles y seguimiento.
+
+- **Video** ([useYouTubePlayback.ts](web/src/hooks/useYouTubePlayback.ts)): consulta el reproductor cada 80 ms y, como el iframe informa el tiempo a saltos, lo extrapola con el reloj local y la velocidad. La frase activa se busca con búsqueda binaria ([segments.ts](web/src/lib/segments.ts)) y la palabra con `word_times`, solo si [exactWordTimes](web/src/lib/wordTiming.ts) los da completos (uno por palabra, crecientes y dentro de la frase); si falta alguno, esa frase no marca palabra. Nada se estima.
+- **Voz** ([useSpeechPlayback.ts](web/src/hooks/useSpeechPlayback.ts)): lee frase a frase con `SpeechSynthesisUtterance`. La palabra activa sale de los eventos `boundary`; si la voz no los emite (por ejemplo, las voces en red de Chrome), solo se resalta la frase.
+- **Seguimiento** ([readingZone.ts](web/src/lib/readingZone.ts)): los elementos fijos se marcan con `data-reading-obstruction="top" | "bottom"` y el scroll coloca lo leído entre ellos.
 
 ### Tokenización
 
@@ -259,9 +277,9 @@ Los errores se devuelven como `{ "error": "mensaje" }` en el idioma de interfaz 
 │   │   │   ├── Layout/
 │   │   │   ├── Reader/                 # TextReader, VideoReader, SegmentText
 │   │   │   └── WordPanel/
-│   │   ├── hooks/                      # useYouTubePlayer, useActiveSegment, useVocabulary…
+│   │   ├── hooks/                      # reproducción (YouTube, voz), vocabulario, escucha…
 │   │   ├── i18n/                       # mensajes es/en
-│   │   ├── lib/                        # tokenize, segments, format (+ tests)
+│   │   ├── lib/                        # tokenize, segments, wordTiming, readingZone (+ tests)
 │   │   ├── pages/
 │   │   └── styles/                     # variables, mixins, estilos globales
 │   └── Dockerfile
@@ -335,6 +353,9 @@ Genera secretos con `openssl rand -hex 64`. No subas `.env` al repositorio (ya e
 | Quiero conectarme a PostgreSQL desde el host | PostgreSQL y Redis no publican puertos para no chocar con instalaciones locales. Descomenta `ports` en el servicio `db` (usa `5433:5432`). |
 | El video falla con "Sign in to confirm…" o error 429 | YouTube limita las peticiones. Espera y usa **Reintentar**, o sube el SRT/VTT desde la lección. |
 | `yt-dlp` deja de funcionar | Reconstruye la imagen para obtener la última versión: `docker compose build --no-cache api worker`. |
+| El botón **Escuchar** de un texto está desactivado | El navegador no tiene voces para ese idioma. En Linux instala `speech-dispatcher` con una voz (p. ej. `espeak-ng`) o usa Chrome/Edge con voces en línea; en Android/iOS instala la voz en los ajustes del sistema. |
+| No se marca la palabra que se dice en un video | Solo se marca si el video tiene subtítulos automáticos de YouTube (traen el tiempo de cada palabra). Con subtítulos manuales se resalta la frase. |
+| La voz del texto solo resalta la frase | Esa voz no avisa de en qué palabra está. Prueba con otra voz del menú de ajustes de reproducción (las locales suelen hacerlo). |
 | No aparecen sugerencias de traducción | MyMemory tiene un límite diario por IP. Define `DEEPL_API_KEY` o escribe el significado a mano. |
 | Los cambios del frontend no se recargan | En algunos sistemas los volúmenes no emiten eventos: añade `CHOKIDAR_USEPOLLING=true` al servicio `web`. |
 

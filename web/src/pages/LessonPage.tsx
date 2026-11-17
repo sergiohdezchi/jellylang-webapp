@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState, type ChangeEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api/client";
@@ -6,12 +6,14 @@ import type { LessonDetail, PhraseEntry } from "../api/types";
 import { useAuth, useLanguage } from "../auth/AuthContext";
 import { useI18n } from "../i18n/I18nProvider";
 import { useVocabulary } from "../hooks/useVocabulary";
+import { scrollIntoReadingZone } from "../lib/readingZone";
 import { tokenize, wordTerms } from "../lib/tokenize";
 import Icon from "../components/Icon";
 import TextReader from "../components/Reader/TextReader";
 import VideoReader from "../components/Reader/VideoReader";
 import WordPanel from "../components/WordPanel/WordPanel";
 import type { PreparedSegment, WordSelection } from "../components/Reader/types";
+import type { Playback } from "../components/Reader/playback";
 import styles from "./LessonPage.module.scss";
 
 export default function LessonPage() {
@@ -46,6 +48,7 @@ function LessonReader({ lesson }: { lesson: LessonDetail }) {
     const [selection, setSelection] = useState<WordSelection | null>(null);
     const [wordOpenCount, setWordOpenCount] = useState(0);
     const readerRef = useRef<HTMLDivElement>(null);
+    const playbackRef = useRef<Playback | null>(null);
 
     const prepared: PreparedSegment[] = useMemo(
         () =>
@@ -97,6 +100,19 @@ function LessonReader({ lesson }: { lesson: LessonDetail }) {
     }, [prepared, vocabulary.entries]);
 
     const initialTime = Number(params.get("t")) || undefined;
+    const segmentIndex = useMemo(() => new Map(lesson.segments.map((s, i) => [s.id, i])), [lesson.segments]);
+
+    // En móvil el panel ocupa la parte inferior: sube la palabra elegida para que siga visible
+    useEffect(() => {
+        if (!selection) return;
+        const timer = window.setTimeout(() => {
+            const target =
+                readerRef.current?.querySelector<HTMLElement>('[data-selected="true"]') ??
+                readerRef.current?.querySelector<HTMLElement>(`[data-segment-id="${selection.segment.id}"]`);
+            if (target) scrollIntoReadingZone(target);
+        }, 200);
+        return () => window.clearTimeout(timer);
+    }, [selection]);
 
     return (
         <div className={`${styles.page} ${selection ? styles.withPanel : ""}`}>
@@ -131,14 +147,19 @@ function LessonReader({ lesson }: { lesson: LessonDetail }) {
                         onWordClick={handleWordClick}
                         wordOpenCount={wordOpenCount}
                         initialTime={initialTime}
+                        playbackRef={playbackRef}
+                        panelOpen={Boolean(selection)}
                     />
                 ) : (
                     <TextReader
                         lesson={lesson}
+                        language={language}
                         prepared={prepared}
                         vocabulary={vocabulary}
                         selectedTerm={selection?.isPhrase ? null : (selection?.term ?? null)}
                         onWordClick={handleWordClick}
+                        wordOpenCount={wordOpenCount}
+                        playbackRef={playbackRef}
                     />
                 )}
             </div>
@@ -154,6 +175,10 @@ function LessonReader({ lesson }: { lesson: LessonDetail }) {
                         window.getSelection()?.removeAllRanges();
                     }}
                     onOpenPhrase={open}
+                    onPlaySentence={() => {
+                        const index = segmentIndex.get(selection.segment.id);
+                        if (index !== undefined) playbackRef.current?.playSegment(index);
+                    }}
                 />
             )}
         </div>

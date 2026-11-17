@@ -31,10 +31,10 @@ module Subtitles
     def dedupe
       recent = []
       @cues.each_with_object([]) do |cue, fragments|
-        cue[:lines].each do |line|
+        cue[:lines].each_with_index do |line, index|
           next if recent.include?(line)
 
-          fragments << { text: line, start_time: cue[:start], end_time: cue[:end] }
+          fragments << { text: line, start_time: cue[:start], end_time: cue[:end], word_times: cue.dig(:timings, index) }
           recent = (recent + [line]).last(2)
         end
       end
@@ -51,6 +51,7 @@ module Subtitles
         end
 
         if buffer
+          buffer[:word_times] = times_for(buffer) + times_for(fragment)
           buffer[:text] = "#{buffer[:text]} #{fragment[:text]}"
           buffer[:end_time] = [buffer[:end_time], fragment[:end_time]].max
         else
@@ -65,7 +66,12 @@ module Subtitles
       end
 
       rows << buffer if buffer
-      rows
+      rows.each { |row| row[:word_times] = nil if row[:word_times]&.all?(&:nil?) }
+    end
+
+    # Tiempos por palabra del fragmento; nil donde no se conocen.
+    def times_for(fragment)
+      fragment[:word_times] || Array.new(Text::Tokenizer.words(fragment[:text]).size)
     end
   end
 end

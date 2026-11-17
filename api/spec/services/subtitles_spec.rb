@@ -11,6 +11,40 @@ RSpec.describe Subtitles do
     expect(rows.first[:end_time]).to be <= rows.last[:start_time]
   end
 
+  it "conserva el inicio de cada palabra de los subtítulos automáticos" do
+    content = File.read(Rails.root.join("spec/fixtures/auto_captions.vtt"))
+    rows = Subtitles::Builder.call(Subtitles::Parser.parse(content))
+
+    expect(rows.first[:word_times]).to eq([0.16, 0.48, 0.8, 1.0, 2.32, 2.56, 2.8])
+    expect(rows.last[:word_times]).to eq([5.0, 5.4, 5.6, 5.9])
+  end
+
+  it "da tiempo a la palabra que YouTube pone sola en una línea" do
+    vtt = <<~VTT
+      WEBVTT
+
+      00:00:01.000 --> 00:00:03.000
+      hello<00:00:01.400><c> there</c>
+
+      00:00:03.000 --> 00:00:03.010
+      hello there
+
+
+      00:00:03.010 --> 00:00:05.000
+      hello there
+      friend.
+    VTT
+    rows = Subtitles::Builder.call(Subtitles::Parser.parse(vtt))
+
+    expect(rows.map { |r| r[:text] }).to eq(["hello there friend."])
+    expect(rows.first[:word_times]).to eq([1.0, 1.4, 3.01])
+  end
+
+  it "no inventa tiempos por palabra en subtítulos normales" do
+    srt = "1\n00:00:01,000 --> 00:00:02,500\nHola mundo.\n"
+    expect(Subtitles::Builder.call(Subtitles::Parser.parse(srt)).first[:word_times]).to be_nil
+  end
+
   it "lee SRT" do
     srt = "1\n00:00:01,000 --> 00:00:02,500\nHola <i>mundo</i>.\n\n2\n00:00:03,000 --> 00:00:04,000\n¿Qué tal?\n"
     rows = Subtitles::Builder.call(Subtitles::Parser.parse(srt))

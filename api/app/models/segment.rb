@@ -8,7 +8,8 @@ class Segment < ApplicationRecord
       paragraph: paragraph,
       text: text,
       start: start_time,
-      end: end_time
+      end: end_time,
+      word_times: word_times
     }
   end
 end

@@ -2,9 +2,13 @@ require "cgi"
 
 module Subtitles
   # Lee archivos WebVTT o SRT y devuelve una lista de cues:
-  # [{ start: Float, end: Float, lines: [String] }]
+  # [{ start: Float, end: Float, lines: [String], timings: [[Float] | nil] }]
+  #
+  # Los subtítulos automáticos de YouTube incluyen el inicio de cada palabra
+  # (`hola<00:00:01.230><c> mundo</c>`); `timings` los alinea con las palabras de cada línea.
   class Parser
     TIMESTAMP = /\A(?:(\d+):)?(\d{1,2}):(\d{2})[.,](\d{1,3})\z/
+    INLINE_TIMESTAMP = /<((?:\d+:)?\d{1,2}:\d{2}[.,]\d{1,3})>/
     NOISE = /\[[^\]]*\]|\((?:[^)]*\b(?:music|música|musique|musik|applause|aplausos|laughter|risas)\b[^)]*)\)|[♪♫]/i
 
     def self.parse(content)
@@ -32,10 +36,10 @@ module Subtitles
       finish = seconds(raw_end)
       return unless start && finish
 
-      text_lines = lines[(timing_index + 1)..].map { |line| clean(line) }.reject(&:empty?)
-      return if text_lines.empty?
+      parsed = lines[(timing_index + 1)..].map { |line| parse_line(line, start) }.reject { |text, _| text.empty? }
+      return if parsed.empty?
 
-      { start: start, end: finish, lines: text_lines }
+      { start: start, end: finish, lines: parsed.map(&:first), timings: parsed.map(&:last) }
     end
 
     def seconds(value)
@@ -43,6 +47,30 @@ module Subtitles
       return unless match
 
       match[1].to_i * 3600 + match[2].to_i * 60 + match[3].to_i + "0.#{match[4]}".to_f
+    end
+
+    # Devuelve [texto limpio, tiempos por palabra o nil]
+    def parse_line(raw, cue_start)
+      text = clean(raw)
+      parts = raw.split(INLINE_TIMESTAMP)
+      if parts.size == 1
+        # Sin marcas internas: una sola palabra es la primera de la línea y empieza con el cue
+        # (así llegan las palabras que YouTube pone solas en una línea); con varias palabras es
+        # una línea repetida del cue anterior y no se conoce el tiempo de cada una.
+        return [text, Text::Tokenizer.words(text).size == 1 ? [cue_start] : nil]
+      end
+
+      times = []
+      current = cue_start
+      parts.each_with_index do |part, index|
+        if index.odd?
+          current = seconds(part) || current
+        else
+          Text::Tokenizer.words(clean(part)).size.times { times << current }
+        end
+      end
+
+      [text, times.size == Text::Tokenizer.words(text).size ? times : nil]
     end
 
     def clean(line)

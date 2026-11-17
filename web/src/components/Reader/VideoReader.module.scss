@@ -8,24 +8,38 @@
 
     @include tablet {
         grid-template-columns: 1fr;
-        gap: 12px;
+        gap: 8px;
     }
 }
 
 .videoColumn {
     position: sticky;
     top: calc(#{$header-height} + 16px);
+    z-index: 10;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
 
+    // En móvil/tablet el video queda fijo arriba y la transcripción pasa por debajo
     @include tablet {
         top: $header-height;
-        z-index: 10;
-        margin: 0 -16px;
-        padding: 0 16px 8px;
+        margin: 0 -20px;
+        padding: 0 20px 8px;
         background: var(--bg);
-        gap: 8px;
+        border-bottom: 1px solid var(--border);
+        gap: 6px;
+    }
+
+    @include mobile {
+        margin: 0 -16px;
+        padding: 0 8px 6px;
+    }
+
+    &.released {
+        @include tablet {
+            position: relative;
+            top: 0;
+        }
     }
 }
 
@@ -44,47 +58,35 @@
     }
 
     @include tablet {
+        // Que el video no se coma la pantalla en horizontal o en tablets
+        max-height: 34vh;
+        margin: 0 auto;
+        width: auto;
+        max-width: 100%;
         border-radius: 0 0 var(--radius-sm) var(--radius-sm);
     }
+
+    @include mobile {
+        width: 100%;
+        max-height: none;
+    }
 }
 
-.controls {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-    align-items: center;
-}
-
-.speed {
-    width: auto;
-    min-height: 38px;
-    margin-left: auto;
-}
-
-.toggles {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px 16px;
-    font-size: 0.85rem;
+.notice {
+    margin: 0 0 8px;
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    background: var(--warning-soft);
+    font-size: 0.82rem;
     color: var(--text-muted);
-
-    label {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        cursor: pointer;
-    }
-
-    @include tablet {
-        display: none;
-    }
 }
 
 .transcript {
     display: flex;
     flex-direction: column;
     gap: 4px;
-    padding-bottom: 40vh;
+    // Espacio para que las últimas frases puedan subir a la zona de lectura
+    padding-bottom: 50vh;
 }
 
 .segment {
@@ -147,6 +149,7 @@
 
     @include mobile {
         font-size: 1.08rem;
+        line-height: 1.75;
     }
 }
 

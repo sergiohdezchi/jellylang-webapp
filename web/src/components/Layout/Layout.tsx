@@ -27,7 +27,7 @@ export default function Layout() {
 
     return (
         <div className={styles.shell}>
-            <header className={styles.header}>
+            <header className={styles.header} data-reading-obstruction="top">
                 <div className={styles.inner}>
                     <NavLink to="/" className={styles.brand}>
                         <span className={styles.logo}>L</span>

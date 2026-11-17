@@ -16,8 +16,9 @@
             padding-right: 392px;
         }
 
-        @include tablet {
-            padding-bottom: 62vh;
+        // Hoja inferior: deja sitio para poder subir el texto por encima del panel
+        @media (max-width: 1239px) {
+            padding-bottom: 55vh;
         }
     }
 }

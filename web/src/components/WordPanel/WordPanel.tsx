@@ -17,11 +17,13 @@ interface Props {
     nativeLanguage: string;
     onClose: () => void;
     onOpenPhrase: (selection: WordSelection) => void;
+    /** Reproduce (video o voz) la frase donde está la palabra */
+    onPlaySentence?: () => void;
 }
 
 const LEVELS = [1, 2, 3, 4];
 
-export default function WordPanel({ selection, vocabulary, language, nativeLanguage, onClose, onOpenPhrase }: Props) {
+export default function WordPanel({ selection, vocabulary, language, nativeLanguage, onClose, onOpenPhrase, onPlaySentence }: Props) {
     const { t } = useI18n();
     const entry: VocabEntry = vocabulary.get(selection.term);
     const [meaning, setMeaning] = useState(entry.meaning ?? "");
@@ -121,7 +123,7 @@ export default function WordPanel({ selection, vocabulary, language, nativeLangu
     const phraseTerms = new Set(selection.term.split(" "));
 
     return (
-        <aside className={styles.panel} aria-label={selection.display}>
+        <aside className={styles.panel} aria-label={selection.display} data-reading-obstruction="bottom">
             <header className={styles.header}>
                 <div>
                     <span className={styles.kind}>
@@ -244,7 +246,14 @@ export default function WordPanel({ selection, vocabulary, language, nativeLangu
                 )}
 
                 <div className={styles.section}>
-                    <span className={styles.label}>{t("panel.context")}</span>
+                    <span className={styles.label}>
+                        {t("panel.context")}
+                        {onPlaySentence && (
+                            <button className={styles.playSentence} onClick={onPlaySentence}>
+                                <Icon name="play" size={11} /> {t("panel.play_sentence")}
+                            </button>
+                        )}
+                    </span>
                     <p className={styles.context}>
                         {contextTokens.map((token, i) =>
                             token.kind === "word" && (selection.isPhrase ? phraseTerms.has(token.term) : token.term === selection.term) ? (
