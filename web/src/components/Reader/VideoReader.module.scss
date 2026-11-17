@@ -10,12 +10,17 @@
         grid-template-columns: 1fr;
         gap: 8px;
     }
+
+    @include landscape-short {
+        grid-template-columns: var(--video-col, 360px) 1fr;
+        gap: 28px;
+    }
 }
 
 .videoColumn {
     position: sticky;
     top: calc(#{$header-height} + 16px);
-    z-index: 10;
+    z-index: 26;
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -35,10 +40,25 @@
         padding: 0 8px 6px;
     }
 
+    @include landscape-short {
+        top: calc(#{$header-height} + 8px);
+        margin: 0;
+        padding: 0;
+        background: none;
+        border-bottom: 0;
+        gap: 8px;
+    }
+
     &.released {
         @include tablet {
             position: relative;
             top: 0;
+        }
+
+        // En horizontal el video siempre queda fijo y visible
+        @include landscape-short {
+            position: sticky;
+            top: calc(#{$header-height} + 8px);
         }
     }
 }
@@ -46,6 +66,9 @@
 .video {
     aspect-ratio: 16 / 9;
     width: 100%;
+    // YouTube exige que el reproductor incrustado mida al menos 200x200 px
+    min-width: 200px;
+    min-height: 200px;
     border-radius: var(--radius);
     overflow: hidden;
     background: #000;
@@ -58,17 +81,20 @@
     }
 
     @include tablet {
-        // Que el video no se coma la pantalla en horizontal o en tablets
-        max-height: 34vh;
+        // Que el video no se coma la pantalla en tabletas, sin salirse de su proporción
+        width: min(100%, calc(34vh * 16 / 9));
         margin: 0 auto;
-        width: auto;
-        max-width: 100%;
         border-radius: 0 0 var(--radius-sm) var(--radius-sm);
     }
 
     @include mobile {
         width: 100%;
-        max-height: none;
+    }
+
+    @include landscape-short {
+        width: 100%;
+        margin: 0;
+        border-radius: var(--radius);
     }
 }
 

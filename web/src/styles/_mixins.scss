@@ -14,6 +14,13 @@ $header-height: 60px;
     }
 }
 
+// Móvil en horizontal: no cabe un video encima del texto, así que van en dos columnas
+@mixin landscape-short {
+    @media (orientation: landscape) and (max-height: 520px) {
+        @content;
+    }
+}
+
 @mixin card {
     background: var(--surface);
     border: 1px solid var(--border);

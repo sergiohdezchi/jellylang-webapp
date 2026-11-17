@@ -36,6 +36,7 @@ export default function VideoReader({ lesson, prepared, vocabulary, selectedTerm
     const queryClient = useQueryClient();
     const { playback, containerRef, player } = useYouTubePlayback(lesson.youtube_id!, prepared);
     const transcriptRef = useRef<HTMLDivElement>(null);
+    const columnRef = useRef<HTMLDivElement>(null);
     const [autoScroll, setAutoScroll] = useStoredState("linguaq.autoScroll", true);
     const [pauseOnWord, setPauseOnWord] = useStoredState("linguaq.pauseOnWord", true);
     const [completed, setCompleted] = useState(Boolean(lesson.completed_at));
@@ -45,6 +46,33 @@ export default function VideoReader({ lesson, prepared, vocabulary, selectedTerm
     useListeningTracker(playback.playing, lesson.language_id);
     useFollowPlayback(transcriptRef, playback, autoScroll);
     usePauseOnWord(playback, wordOpenCount, pauseOnWord);
+
+    // Publica dónde acaba el reproductor para que el panel de palabra se quede debajo y nunca lo tape
+    useEffect(() => {
+        const column = columnRef.current;
+        if (!column) return;
+        const root = document.documentElement;
+        let frame = 0;
+        const update = () => {
+            frame = 0;
+            root.style.setProperty("--player-bottom", `${Math.max(column.getBoundingClientRect().bottom, 0)}px`);
+        };
+        const schedule = () => {
+            if (!frame) frame = requestAnimationFrame(update);
+        };
+        update();
+        window.addEventListener("scroll", schedule, { passive: true });
+        window.addEventListener("resize", schedule);
+        const observer = new ResizeObserver(schedule);
+        observer.observe(column);
+        return () => {
+            if (frame) cancelAnimationFrame(frame);
+            window.removeEventListener("scroll", schedule);
+            window.removeEventListener("resize", schedule);
+            observer.disconnect();
+            root.style.removeProperty("--player-bottom");
+        };
+    }, []);
 
     // Empezar en un momento concreto (?t=segundos), p. ej. desde el vocabulario
     useEffect(() => {
@@ -64,7 +92,7 @@ export default function VideoReader({ lesson, prepared, vocabulary, selectedTerm
     return (
         <div className={styles.layout}>
             {/* Con el panel abierto y el video en pausa, en móvil el video deja de estar fijo para ganar espacio */}
-            <div className={`${styles.videoColumn} ${panelOpen && !playback.playing ? styles.released : ""}`} data-reading-obstruction="top">
+            <div ref={columnRef} className={`${styles.videoColumn} ${panelOpen && !playback.playing ? styles.released : ""}`} data-reading-obstruction="top">
                 <div className={styles.video} ref={containerRef} />
                 <PlayerControls
                     playback={playback}

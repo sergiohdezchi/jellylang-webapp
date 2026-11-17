@@ -399,10 +399,12 @@ Genera secretos con `openssl rand -hex 64`. No subas `.env` al repositorio (ya e
 
 ## Consideraciones legales
 
-- Los videos se reproducen **solo con el reproductor oficial incrustado** de YouTube; no se descargan ni se redistribuyen.
+- Los videos se reproducen **solo con el reproductor oficial incrustado** de YouTube, controlado con su IFrame Player API; no se descargan ni se redistribuyen. Los controles propios (repetir frase, bucle, velocidad) solo llaman a esa API y van **debajo** del reproductor, nunca encima.
+- Se cumplen las reglas de incrustación: el reproductor mide siempre al menos 200×200 px, conserva los controles y la marca de YouTube, y nada se superpone a él (en móvil horizontal el video va en su propia columna; el panel de palabra se limita al espacio libre bajo el reproductor). No se reproduce solo el audio.
 - Respeta los [Términos de Servicio de YouTube](https://www.youtube.com/t/terms) y la política de su API.
 - Las transcripciones y los artículos pertenecen a sus autores: úsalos para el estudio personal y no los publiques como contenido propio.
 - La importación de artículos bloquea direcciones de red privadas para evitar SSRF, pero si despliegas el proyecto públicamente revisa también límites de uso.
+- **Subtítulos y metadatos con `yt-dlp`:** es la parte que no es oficial. La API oficial de YouTube solo permite descargar los subtítulos de videos de los que eres propietario, así que para videos ajenos no hay alternativa oficial. Obtenerlos con `yt-dlp` puede chocar con los Términos de Servicio de YouTube; úsalo solo para estudio personal y revisa este punto antes de desplegar el proyecto públicamente. La subida manual de SRT/VTT no depende de YouTube.
 - `yt-dlp` puede dejar de funcionar si YouTube cambia su sitio: actualiza la imagen con regularidad y mantén la subida manual de subtítulos como alternativa.
 
 ## Licencia

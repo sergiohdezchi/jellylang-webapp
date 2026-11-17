@@ -10,6 +10,11 @@
         padding: 8px 16px 48px;
     }
 
+    // Ancho de la columna del video en móvil horizontal (lo usa también el panel de palabra)
+    @include landscape-short {
+        --video-col: max(360px, calc((100vw - 40px) * 0.44));
+    }
+
     // En pantallas anchas el panel no tapa el texto
     &.withPanel {
         @media (min-width: 1240px) {
