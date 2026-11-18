@@ -1,5 +1,5 @@
 const BASE_URL: string = import.meta.env.VITE_API_URL ?? "/api/v1";
-const TOKEN_KEY = "linguaq.token";
+const TOKEN_KEY = "jellylang.token";
 
 let token: string | null = readToken();
 let unauthorizedHandler: (() => void) | null = null;

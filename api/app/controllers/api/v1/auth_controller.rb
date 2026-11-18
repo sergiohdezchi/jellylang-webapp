@@ -5,7 +5,7 @@ module Api
 
       # Cookie con el token de sesión, solo para que la extensión del navegador pueda usar la sesión de la web.
       # La API NO la acepta para autenticar (sigue exigiendo "Authorization: Bearer"), así que no abre la puerta a CSRF.
-      SESSION_COOKIE = "linguaq_token".freeze
+      SESSION_COOKIE = "jellylang_token".freeze
 
       skip_before_action :authenticate!, only: %i[signup login destroy_session]
 

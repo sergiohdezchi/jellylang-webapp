@@ -33,8 +33,8 @@ export default function TextReader({ lesson, language, prepared, vocabulary, sel
     const queryClient = useQueryClient();
     const articleRef = useRef<HTMLElement>(null);
     const { playback, voices, voice, setVoiceName, supported } = useSpeechPlayback(prepared, language.code);
-    const [autoScroll, setAutoScroll] = useStoredState("linguaq.autoScroll", true);
-    const [pauseOnWord, setPauseOnWord] = useStoredState("linguaq.pauseOnWord", true);
+    const [autoScroll, setAutoScroll] = useStoredState("jellylang.autoScroll", true);
+    const [pauseOnWord, setPauseOnWord] = useStoredState("jellylang.pauseOnWord", true);
 
     playbackRef.current = playback;
     useListeningTracker(playback.playing, lesson.language_id);

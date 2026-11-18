@@ -1,4 +1,6 @@
-# LinguaQ
+<p align="center"><img src="web/public/logo.png" alt="Jellylang" width="360" /></p>
+
+# Jellylang
 
 Aplicación web para aprender idiomas mediante **lectura y escucha de contenido real**: textos, artículos y videos de YouTube. Lees, haces clic en las palabras que no conoces, las guardas como **LingQs** y las repasas con repetición espaciada.
 
@@ -21,7 +23,7 @@ Al arrancar, la API crea la base de datos, ejecuta las migraciones y carga los d
 | API | http://localhost:3000/api/v1 |
 | Panel de Sidekiq (solo desarrollo) | http://localhost:3000/sidekiq |
 
-Usuario de demostración: **demo@linguaq.dev / password123** (administrador, con una lección de ejemplo en inglés).
+Usuario de demostración: **demo@jellylang.dev / password123** (administrador, con una lección de ejemplo en inglés).
 
 ---
 
@@ -140,7 +142,7 @@ Con la base de datos vacía el registro siempre está abierto, para poder crear 
 
 La extensión ([extension/](extension/README.md)) es la forma recomendada de importar videos de YouTube. Sigue el mismo esquema que el importador de LingQ y funciona desde tu navegador, **sin que el servidor consulte a YouTube**:
 
-1. **Sesión:** inicias sesión en la web de LinguaQ. Al hacerlo, la API deja el token en la cookie `linguaq_token` (HttpOnly). La extensión la lee y no necesita un inicio de sesión propio; al salir de la web, la cookie se borra.
+1. **Sesión:** inicias sesión en la web de Jellylang. Al hacerlo, la API deja el token en la cookie `jellylang_token` (HttpOnly). La extensión la lee y no necesita un inicio de sesión propio; al salir de la web, la cookie se borra.
 2. **Datos del video:** al abrir un video, la extensión pide su información y sus pistas de subtítulos a la API del reproductor de YouTube (`youtubei/v1/player`), **identificándose como la app de Android**. Con ese cliente, YouTube devuelve URLs de subtítulos que se pueden descargar sin el token que exige su web.
 3. **Formulario:** en el popup eliges idioma, pista de subtítulos, curso (o uno nuevo) y nivel, y puedes editar el título.
 4. **Importación:** la extensión descarga la pista en formato `json3` y la envía a `POST /api/v1/imports`. La API crea las frases con tiempos y, con subtítulos automáticos, el tiempo real de cada palabra.
@@ -316,7 +318,7 @@ Los errores se devuelven como `{ "error": "mensaje" }` en el idioma de interfaz 
 │   └── Dockerfile
 ├── extension/                          # Extensión de Chrome/Edge/Brave (Manifest V3)
 │   ├── youtube/                        # inject.js · worker.js (en la página) · contentscript.js
-│   ├── lib/ icons/
+│   ├── lib/ icons/   (icono: la medusa de Jellylang)
 │   └── popup.html · popup.js           # formulario de importación
 ├── web/                                # React
 │   ├── src/
@@ -373,8 +375,8 @@ Notas:
 
 ```env
 # Base de datos (el host y Redis los fija docker-compose.yml)
-DB_USER=linguaq
-DB_PASSWORD=linguaq
+DB_USER=jellylang
+DB_PASSWORD=jellylang
 
 # Rails
 RAILS_ENV=development

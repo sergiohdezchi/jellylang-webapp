@@ -3,18 +3,18 @@ default: &default
   encoding: unicode
   host: <%= ENV.fetch("DB_HOST", "localhost") %>
   port: <%= ENV.fetch("DB_PORT", 5432) %>
-  username: <%= ENV.fetch("DB_USER", "linguaq") %>
-  password: <%= ENV.fetch("DB_PASSWORD", "linguaq") %>
+  username: <%= ENV.fetch("DB_USER", "jellylang") %>
+  password: <%= ENV.fetch("DB_PASSWORD", "jellylang") %>
   max_connections: <%= ENV.fetch("RAILS_MAX_THREADS", 5).to_i + 5 %>
 
 development:
   <<: *default
-  database: linguaq_development
+  database: jellylang_development
 
 test:
   <<: *default
-  database: linguaq_test
+  database: jellylang_test
 
 production:
   <<: *default
-  database: <%= ENV.fetch("DB_NAME", "linguaq_production") %>
+  database: <%= ENV.fetch("DB_NAME", "jellylang_production") %>

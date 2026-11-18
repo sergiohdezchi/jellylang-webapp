@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "LinguaQ Importer",
+  "name": "Jellylang Importer",
   "version": "0.2.0",
-  "description": "Importa videos de YouTube con sus subtítulos a tu biblioteca de LinguaQ.",
+  "description": "Importa videos de YouTube con sus subtítulos a tu biblioteca de Jellylang.",
   "minimum_chrome_version": "111",
   "icons": {
     "16": "icons/icon-16.png",
@@ -11,7 +11,7 @@
     "128": "icons/icon-128.png"
   },
   "action": {
-    "default_title": "LinguaQ",
+    "default_title": "Jellylang",
     "default_popup": "popup.html",
     "default_icon": {
       "16": "icons/icon-16.png",

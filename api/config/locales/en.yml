@@ -15,7 +15,7 @@ en:
       metadata: "Could not read the video information"
       no_subtitles: "The video has no subtitles in '%{language}'. Upload an SRT/VTT file instead."
       ytdlp_missing: "yt-dlp is not installed on the server"
-      ytdlp_disabled: "yt-dlp imports are turned off on this server. Import the video with the LinguaQ extension or upload an SRT/VTT file."
+      ytdlp_disabled: "yt-dlp imports are turned off on this server. Import the video with the Jellylang extension or upload an SRT/VTT file."
     admin:
       forbidden: "Administrator permissions required"
       self: "You can't remove your own admin role, disable or delete yourself"

@@ -18,7 +18,7 @@ export default function AuthShell({ children }: { children: ReactNode }) {
             <section className={styles.formSide}>
                 <div className={styles.form}>
                     <div className={styles.brand}>
-                        <span>L</span> LinguaQ
+                        <img src="/mark.png" alt="" className={styles.mark} /> Jellylang
                         <select
                             className="select"
                             style={{ width: "auto", marginLeft: "auto", minHeight: 32 }}

@@ -25,7 +25,7 @@ export default function ReviewPage() {
     const language = useLanguage();
     const { t } = useI18n();
     const queryClient = useQueryClient();
-    const [mode, setMode] = useStoredState<Mode>("linguaq.reviewMode", "cards");
+    const [mode, setMode] = useStoredState<Mode>("jellylang.reviewMode", "cards");
     const [queue, setQueue] = useState<DueItem[] | null>(null);
     const [revealed, setRevealed] = useState(false);
     const [answer, setAnswer] = useState("");

@@ -55,7 +55,7 @@ module Articles
 
       response = Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https", open_timeout: 5, read_timeout: 15) do |http|
         request = Net::HTTP::Get.new(uri)
-        request["User-Agent"] = "Mozilla/5.0 (compatible; LinguaQ/1.0)"
+        request["User-Agent"] = "Mozilla/5.0 (compatible; Jellylang/1.0)"
         request["Accept"] = "text/html,application/xhtml+xml"
         http.request(request)
       end

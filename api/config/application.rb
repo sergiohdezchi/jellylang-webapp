@@ -20,11 +20,11 @@ module Api
     # Caché compartida en Redis (traducciones, etc.)
     config.cache_store = :redis_cache_store, {
       url: ENV.fetch("REDIS_URL", "redis://localhost:6379/0"),
-      namespace: "linguaq:cache"
+      namespace: "jellylang:cache"
     }
 
     # Sesión mínima solo para el panel web de Sidekiq
-    config.session_store :cookie_store, key: "_linguaq_session"
+    config.session_store :cookie_store, key: "_jellylang_session"
     config.middleware.use ActionDispatch::Cookies
     config.middleware.use config.session_store, config.session_options
 

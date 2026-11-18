@@ -16,7 +16,7 @@ const TICK_MS = 80;
  */
 export function useYouTubePlayback(videoId: string, prepared: PreparedSegment[]) {
     const { containerRef, player, playing } = useYouTubePlayer(videoId);
-    const [rate, setRate] = useStoredState("linguaq.speed", 1);
+    const [rate, setRate] = useStoredState("jellylang.speed", 1);
     const [loopIndex, setLoopIndex] = useState<number | null>(null);
     const [position, setPosition] = useState({ index: -1, word: -1 });
     const sample = useRef({ reported: -1, at: 0 });

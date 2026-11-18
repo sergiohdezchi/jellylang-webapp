@@ -5,8 +5,8 @@
 //   GetVideoSubs   { tid }       → contenido de la pista en formato json3
 (() => {
     "use strict";
-    const TARGET = "linguaq-youtube";
-    const CONTAINER_ID = "LINGUAQ_YT";
+    const TARGET = "jellylang-youtube";
+    const CONTAINER_ID = "JELLYLANG_YT";
     // Códigos antiguos que YouTube sigue usando
     const ALIASES = { iw: "he", in: "id", ji: "yi", fil: "tl" };
 
@@ -25,7 +25,7 @@
 
     function currentNode() {
         const id = document.getElementById(CONTAINER_ID)?.dataset.current;
-        return id ? document.getElementById(`linguaq-video-${id}`) : null;
+        return id ? document.getElementById(`jellylang-video-${id}`) : null;
     }
 
     /** Espera a que worker.js termine de cargar el video actual (reintenta una vez si falló). */
@@ -37,7 +37,7 @@
             if (node?.dataset.status === "error") {
                 if (retried) throw new Fail("video_unavailable", node.dataset.error);
                 retried = true;
-                window.dispatchEvent(new CustomEvent("linguaq:refresh"));
+                window.dispatchEvent(new CustomEvent("jellylang:refresh"));
             }
             await sleep(100);
         }

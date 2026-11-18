@@ -9,7 +9,7 @@ interface I18nValue {
     t: (key: MessageKey, vars?: Vars) => string;
 }
 
-const STORAGE_KEY = "linguaq.locale";
+const STORAGE_KEY = "jellylang.locale";
 const I18nContext = createContext<I18nValue | null>(null);
 
 function initialLocale(): Locale {

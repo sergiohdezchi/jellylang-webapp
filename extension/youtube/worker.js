@@ -4,14 +4,14 @@
 // como la app de Android: así YouTube devuelve URLs de subtítulos que se pueden descargar sin el token
 // que exige la web. Es una API interna, no aprobada por YouTube (la misma técnica que usa yt-dlp).
 //
-// El resultado se deja en un <div> oculto (#LINGUAQ_YT): es el canal hacia contentscript.js, que vive en el
+// El resultado se deja en un <div> oculto (#JELLYLANG_YT): es el canal hacia contentscript.js, que vive en el
 // mundo aislado de la extensión y no ve las variables de la página, pero sí el DOM.
 (() => {
     "use strict";
-    if (window.__linguaqYouTube) return;
-    window.__linguaqYouTube = true;
+    if (window.__jellylangYouTube) return;
+    window.__jellylangYouTube = true;
 
-    const CONTAINER_ID = "LINGUAQ_YT";
+    const CONTAINER_ID = "JELLYLANG_YT";
     const PLAYER_URL = "https://www.youtube.com/youtubei/v1/player?prettyPrint=false";
     // Si YouTube deja de aceptar esta versión, se actualiza a una reciente de la app de YouTube para Android.
     const ANDROID_CLIENT = { clientName: "ANDROID", clientVersion: "20.10.38" };
@@ -61,7 +61,7 @@
         box.dataset.current = videoId ?? "";
         if (!videoId) return;
 
-        const nodeId = `linguaq-video-${videoId}`;
+        const nodeId = `jellylang-video-${videoId}`;
         let node = document.getElementById(nodeId);
         if (node && !force) return; // ya cargado (o cargándose)
         node?.remove();
@@ -113,7 +113,7 @@
     window.addEventListener("popstate", onNavigate);
 
     // El content script pide reintentar si la carga falló
-    window.addEventListener("linguaq:refresh", () => load({ force: true }));
+    window.addEventListener("jellylang:refresh", () => load({ force: true }));
 
     const start = () => {
         load();

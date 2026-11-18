@@ -39,7 +39,7 @@ function showError(error) {
 async function callTab(type, payload) {
     let response;
     try {
-        response = await chrome.tabs.sendMessage(tabId, { target: "linguaq-youtube", type, payload });
+        response = await chrome.tabs.sendMessage(tabId, { target: "jellylang-youtube", type, payload });
     } catch {
         // La pestaña se abrió antes de instalar la extensión: no tiene el content script
         throw Object.assign(new Error("reload_page"), { code: "reload_page" });

@@ -37,8 +37,8 @@ export default function VideoReader({ lesson, prepared, vocabulary, selectedTerm
     const { playback, containerRef, player } = useYouTubePlayback(lesson.youtube_id!, prepared);
     const transcriptRef = useRef<HTMLDivElement>(null);
     const columnRef = useRef<HTMLDivElement>(null);
-    const [autoScroll, setAutoScroll] = useStoredState("linguaq.autoScroll", true);
-    const [pauseOnWord, setPauseOnWord] = useStoredState("linguaq.pauseOnWord", true);
+    const [autoScroll, setAutoScroll] = useStoredState("jellylang.autoScroll", true);
+    const [pauseOnWord, setPauseOnWord] = useStoredState("jellylang.pauseOnWord", true);
     const [completed, setCompleted] = useState(Boolean(lesson.completed_at));
     const phraseMarks = usePhraseMarks(prepared, vocabulary.phrases);
 

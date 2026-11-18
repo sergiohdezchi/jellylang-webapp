@@ -18,8 +18,8 @@ function matchesLanguage(voice: SpeechSynthesisVoice, code: string) {
  */
 export function useSpeechPlayback(prepared: PreparedSegment[], languageCode: string) {
     const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
-    const [voiceName, setVoiceName] = useStoredState(`linguaq.voice.${languageCode}`, "");
-    const [rate, setRate] = useStoredState("linguaq.ttsRate", 1);
+    const [voiceName, setVoiceName] = useStoredState(`jellylang.voice.${languageCode}`, "");
+    const [rate, setRate] = useStoredState("jellylang.ttsRate", 1);
     const [playing, setPlaying] = useState(false);
     const [loop, setLoop] = useState(false);
     const [activeIndex, setActiveIndex] = useState(-1);

@@ -1,4 +1,4 @@
-name: linguaq
+name: jellylang
 
 x-api: &api
   build:
@@ -25,9 +25,9 @@ services:
   db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: ${DB_USER:-linguaq}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-linguaq}
-      POSTGRES_DB: linguaq_development
+      POSTGRES_USER: ${DB_USER:-jellylang}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-jellylang}
+      POSTGRES_DB: jellylang_development
     volumes:
       - postgres_data:/var/lib/postgresql/data
     # Sin puertos publicados para no chocar con un PostgreSQL local.
@@ -35,7 +35,7 @@ services:
     # ports:
     #   - "5433:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-linguaq}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-jellylang}"]
       interval: 5s
       retries: 10
 

@@ -75,7 +75,7 @@ module Api
             items.each do |l|
               back = l.meaning.to_s
               back += "<br><i>#{ERB::Util.html_escape(l.context)}</i>" if l.context.present?
-              csv << [l.word.term, back, "linguaq level#{l.user_word&.level || 1}"]
+              csv << [l.word.term, back, "jellylang level#{l.user_word&.level || 1}"]
             end
           else
             csv << %w[term meaning notes context status level lesson created_at]
@@ -87,7 +87,7 @@ module Api
 
         send_data data,
                   type: anki ? "text/tab-separated-values" : "text/csv",
-                  filename: "linguaq-#{language_param.code}-#{Date.current}.#{anki ? 'txt' : 'csv'}"
+                  filename: "jellylang-#{language_param.code}-#{Date.current}.#{anki ? 'txt' : 'csv'}"
       end
 
       private

@@ -10,7 +10,7 @@ end
 # Usuario de demostración (solo desarrollo)
 if Rails.env.development?
   english = Language.find_by!(code: "en")
-  user = User.find_or_initialize_by(email: "demo@linguaq.dev")
+  user = User.find_or_initialize_by(email: "demo@jellylang.dev")
   if user.new_record?
     user.assign_attributes(name: "Demo", password: "password123", native_language: "es", current_language: english, admin: true)
     user.save!
@@ -33,5 +33,5 @@ if Rails.env.development?
     TEXT
   end
 
-  puts "Usuario demo (administrador): demo@linguaq.dev / password123"
+  puts "Usuario demo (administrador): demo@jellylang.dev / password123"
 end

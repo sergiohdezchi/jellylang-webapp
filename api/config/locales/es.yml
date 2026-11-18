@@ -15,7 +15,7 @@ es:
       metadata: "No se pudo leer la información del video"
       no_subtitles: "El video no tiene subtítulos en '%{language}'. Sube un archivo SRT/VTT."
       ytdlp_missing: "yt-dlp no está instalado en el servidor"
-      ytdlp_disabled: "La importación con yt-dlp está desactivada en este servidor. Importa el video con la extensión de LinguaQ o sube un archivo SRT/VTT."
+      ytdlp_disabled: "La importación con yt-dlp está desactivada en este servidor. Importa el video con la extensión de Jellylang o sube un archivo SRT/VTT."
     admin:
       forbidden: "Necesitas permisos de administrador"
       self: "No puedes quitarte el rol de administrador, desactivarte ni borrarte a ti mismo"

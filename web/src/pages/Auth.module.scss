@@ -77,14 +77,10 @@
     font-weight: 700;
     font-size: 1.2rem;
 
-    span {
-        display: grid;
-        place-items: center;
-        width: 36px;
-        height: 36px;
-        border-radius: 10px;
-        background: var(--accent);
-        color: var(--accent-contrast);
+    .mark {
+        display: block;
+        width: auto;
+        height: 40px;
     }
 }
 

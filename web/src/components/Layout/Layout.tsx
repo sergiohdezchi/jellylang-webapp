@@ -30,8 +30,8 @@ export default function Layout() {
             <header className={styles.header} data-reading-obstruction="top">
                 <div className={styles.inner}>
                     <NavLink to="/" className={styles.brand}>
-                        <span className={styles.logo}>L</span>
-                        <span className={styles.brandName}>LinguaQ</span>
+                        <img src="/mark.png" alt="" className={styles.logo} />
+                        <span className={styles.brandName}>Jellylang</span>
                     </NavLink>
 
                     {language && (
