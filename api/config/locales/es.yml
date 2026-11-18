@@ -12,6 +12,14 @@ es:
       metadata: "No se pudo leer la información del video"
       no_subtitles: "El video no tiene subtítulos en '%{language}'. Sube un archivo SRT/VTT."
       ytdlp_missing: "yt-dlp no está instalado en el servidor"
+      ytdlp_disabled: "La importación con yt-dlp está desactivada en este servidor. Importa el video con la extensión de LinguaQ o sube un archivo SRT/VTT."
+    import:
+      source_unsupported: "Origen de importación no soportado: %{source}"
+      invalid_video: "El identificador del video no es válido"
+      invalid_format: "Los subtítulos no tienen un formato válido"
+      unsupported_format: "Formato de subtítulos no soportado: %{name}"
+      language_mismatch: "Los subtítulos están en '%{track}', pero la lección es en '%{language}'"
+      too_large: "Los subtítulos son demasiado grandes (máximo 5 MB)"
     article:
       invalid_url: "URL no válida o inaccesible"
       no_text: "No se encontró texto legible en esa página"

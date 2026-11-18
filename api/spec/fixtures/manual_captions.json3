@@ -1,0 +1,4 @@
+{"wireMagic":"pb3","events":[
+ {"tStartMs":1000,"dDurationMs":2500,"segs":[{"utf8":"Hello there,\nmy friend."}]},
+ {"tStartMs":4000,"dDurationMs":2000,"segs":[{"utf8":"How are you?"}]}
+]}

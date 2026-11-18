@@ -140,3 +140,10 @@ export interface Translation {
     alternatives: string[];
     provider: string;
 }
+
+/** Capacidades del servidor (GET /config) */
+export interface AppConfig {
+    /** El servidor puede importar videos de YouTube por URL con yt-dlp */
+    ytdlp_enabled: boolean;
+    import_sources: string[];
+}

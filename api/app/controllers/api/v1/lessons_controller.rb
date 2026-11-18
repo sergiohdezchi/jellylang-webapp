@@ -1,6 +1,8 @@
 module Api
   module V1
     class LessonsController < ApplicationController
+      before_action :require_ytdlp!, only: %i[youtube reimport]
+
       def index
         lessons = current_user.lessons.recent.limit(500)
         lessons = lessons.where(language_id: params[:language_id]) if params[:language_id].present?
@@ -109,6 +111,13 @@ module Api
       end
 
       private
+
+      # La importación con yt-dlp se puede apagar (YTDLP_ENABLED=false): entonces solo queda la extensión.
+      def require_ytdlp!
+        return if Features.ytdlp_enabled?
+
+        raise ApiError.new(I18n.t("errors.youtube.ytdlp_disabled"), status: :forbidden, code: "ytdlp_disabled")
+      end
 
       def base_params
         attrs = params.permit(:title, :level, :course_id)

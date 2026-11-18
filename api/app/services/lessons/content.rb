@@ -25,6 +25,20 @@ module Lessons
       rows
     end
 
+    def from_json3(content)
+      rows = Subtitles::Builder.call(Subtitles::Json3Parser.parse(content))
+      raise Error, I18n.t("errors.lesson.empty_subtitles") if rows.empty?
+
+      rows
+    rescue Subtitles::Json3Parser::Error => e
+      raise Error, e.message
+    end
+
+    # Subtítulos de un cliente externo (extensión): formato json3, vtt o srt.
+    def from_track(format, content)
+      format == "json3" ? from_json3(content) : from_subtitles(content)
+    end
+
     # Devuelve [rows, título sugerido]
     def from_upload(upload)
       raise Error, I18n.t("errors.lesson.empty") unless upload.respond_to?(:read)

@@ -5,6 +5,7 @@ import { api } from "../api/client";
 import type { LessonDetail, PhraseEntry } from "../api/types";
 import { useAuth, useLanguage } from "../auth/AuthContext";
 import { useI18n } from "../i18n/I18nProvider";
+import { useConfig } from "../hooks/useConfig";
 import { useVocabulary } from "../hooks/useVocabulary";
 import { scrollIntoReadingZone } from "../lib/readingZone";
 import { tokenize, wordTerms } from "../lib/tokenize";
@@ -187,6 +188,8 @@ function LessonReader({ lesson }: { lesson: LessonDetail }) {
 
 function PendingLesson({ lesson }: { lesson: LessonDetail }) {
     const { t } = useI18n();
+    const { data: config } = useConfig();
+    const ytdlpOff = config?.ytdlp_enabled === false;
     const queryClient = useQueryClient();
     const [error, setError] = useState<string | null>(null);
     const [busy, setBusy] = useState(false);
@@ -236,12 +239,13 @@ function PendingLesson({ lesson }: { lesson: LessonDetail }) {
                                 <Icon name="upload" /> {t("lesson.upload_subs")}
                                 <input type="file" accept=".srt,.vtt" hidden onChange={upload} disabled={busy} />
                             </label>
-                            {lesson.youtube_id && (
+                            {lesson.youtube_id && !ytdlpOff && (
                                 <button className="btn" disabled={busy} onClick={() => act(() => api(`/lessons/${lesson.id}/reimport`, { method: "POST" }))}>
                                     <Icon name="repeat" /> {t("lesson.retry")}
                                 </button>
                             )}
                         </div>
+                        {lesson.youtube_id && ytdlpOff && <p className="muted">{t("lesson.extension_hint")}</p>}
                     </>
                 )}
                 <Link to="/">{t("lesson.back")}</Link>

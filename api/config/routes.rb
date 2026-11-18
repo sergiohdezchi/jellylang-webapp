@@ -12,6 +12,7 @@ Rails.application.routes.draw do
       get "auth/me", to: "auth#me"
       patch "auth/me", to: "auth#update"
 
+      get "config", to: "config#show"
       resources :languages, only: :index
       resources :courses, only: %i[index create update destroy]
 
@@ -22,6 +23,9 @@ Rails.application.routes.draw do
           post :reimport
         end
       end
+
+      # Importación desde fuentes externas (la extensión del navegador envía aquí los subtítulos)
+      post "imports", to: "imports#create"
 
       resources :lingqs, only: %i[index create update destroy] do
         get :export, on: :collection

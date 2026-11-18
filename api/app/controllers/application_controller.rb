@@ -1,17 +1,18 @@
 class ApplicationController < ActionController::API
   class ApiError < StandardError
-    attr_reader :status
+    attr_reader :status, :code
 
-    def initialize(message, status: :unprocessable_entity)
+    def initialize(message, status: :unprocessable_entity, code: nil)
       super(message)
       @status = status
+      @code = code
     end
   end
 
   before_action :authenticate!
   around_action :with_user_context
 
-  rescue_from ApiError, with: ->(e) { render_error(e.message, e.status) }
+  rescue_from ApiError, with: ->(e) { render_error(e.message, e.status, code: e.code) }
   rescue_from ActiveRecord::RecordNotFound, with: ->(_) { render_error(I18n.t("errors.not_found"), :not_found) }
   rescue_from ActionController::ParameterMissing, with: ->(e) { render_error(e.message, :bad_request) }
   rescue_from ActiveRecord::RecordInvalid do |e|
@@ -41,8 +42,8 @@ class ApplicationController < ActionController::API
     request.headers["Accept-Language"].to_s.start_with?("en") ? :en : :es
   end
 
-  def render_error(message, status = :unprocessable_entity)
-    render json: { error: message }, status: status
+  def render_error(message, status = :unprocessable_entity, code: nil)
+    render json: { error: message, code: code }.compact, status: status
   end
 
   def language_param

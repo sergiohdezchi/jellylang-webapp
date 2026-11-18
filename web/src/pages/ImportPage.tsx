@@ -5,7 +5,9 @@ import { api } from "../api/client";
 import type { Lesson } from "../api/types";
 import { useLanguage } from "../auth/AuthContext";
 import { useI18n } from "../i18n/I18nProvider";
+import { useConfig } from "../hooks/useConfig";
 import { useCourses } from "../hooks/useCourses";
+import ExtensionGuide from "../components/ExtensionGuide";
 import Icon, { type IconName } from "../components/Icon";
 import styles from "./ImportPage.module.scss";
 
@@ -25,8 +27,11 @@ export default function ImportPage() {
     const queryClient = useQueryClient();
     const [params] = useSearchParams();
     const { data: courses = [] } = useCourses();
+    const { data: config } = useConfig();
 
     const [mode, setMode] = useState<Mode>("youtube");
+    // Con yt-dlp apagado, YouTube solo se importa con la extensión
+    const extensionOnly = mode === "youtube" && config?.ytdlp_enabled === false;
     const [title, setTitle] = useState("");
     const [courseId, setCourseId] = useState(params.get("course") ?? "");
     const [level, setLevel] = useState("");
@@ -80,6 +85,9 @@ export default function ImportPage() {
                     ))}
                 </div>
 
+                {extensionOnly ? (
+                    <ExtensionGuide />
+                ) : (
                 <form className="card" onSubmit={handleSubmit}>
                     {error && <div className="alert error">{error}</div>}
 
@@ -96,6 +104,13 @@ export default function ImportPage() {
                             />
                             <small className="muted">{t("import.youtube_hint", { language: language.name })}</small>
                         </label>
+                    )}
+
+                    {mode === "youtube" && (
+                        <details className="field">
+                            <summary>{t("import.extension_alt")}</summary>
+                            <ExtensionGuide embedded />
+                        </details>
                     )}
 
                     {mode === "url" && (
@@ -169,6 +184,7 @@ export default function ImportPage() {
                         </button>
                     </div>
                 </form>
+                )}
             </div>
         </div>
     );

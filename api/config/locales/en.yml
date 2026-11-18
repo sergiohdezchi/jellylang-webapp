@@ -12,6 +12,14 @@ en:
       metadata: "Could not read the video information"
       no_subtitles: "The video has no subtitles in '%{language}'. Upload an SRT/VTT file instead."
       ytdlp_missing: "yt-dlp is not installed on the server"
+      ytdlp_disabled: "yt-dlp imports are turned off on this server. Import the video with the LinguaQ extension or upload an SRT/VTT file."
+    import:
+      source_unsupported: "Unsupported import source: %{source}"
+      invalid_video: "The video identifier is not valid"
+      invalid_format: "The subtitles are not in a valid format"
+      unsupported_format: "Unsupported subtitle format: %{name}"
+      language_mismatch: "The subtitles are in '%{track}', but the lesson is in '%{language}'"
+      too_large: "The subtitles are too large (max 5 MB)"
     article:
       invalid_url: "Invalid or unreachable URL"
       no_text: "No readable text was found on that page"

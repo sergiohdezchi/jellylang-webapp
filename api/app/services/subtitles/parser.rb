@@ -1,5 +1,3 @@
-require "cgi"
-
 module Subtitles
   # Lee archivos WebVTT o SRT y devuelve una lista de cues:
   # [{ start: Float, end: Float, lines: [String], timings: [[Float] | nil] }]
@@ -9,7 +7,6 @@ module Subtitles
   class Parser
     TIMESTAMP = /\A(?:(\d+):)?(\d{1,2}):(\d{2})[.,](\d{1,3})\z/
     INLINE_TIMESTAMP = /<((?:\d+:)?\d{1,2}:\d{2}[.,]\d{1,3})>/
-    NOISE = /\[[^\]]*\]|\((?:[^)]*\b(?:music|música|musique|musik|applause|aplausos|laughter|risas)\b[^)]*)\)|[♪♫]/i
 
     def self.parse(content)
       new(content).cues
@@ -74,9 +71,7 @@ module Subtitles
     end
 
     def clean(line)
-      text = line.gsub(/<[^>]*>/, "")
-      text = CGI.unescapeHTML(text).gsub("&nbsp;", " ")
-      text.gsub(NOISE, " ").sub(/\A\s*(?:>>|-)\s*/, "").gsub(/\s+/, " ").strip
+      Cleaner.call(line)
     end
   end
 end

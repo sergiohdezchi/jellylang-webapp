@@ -10,6 +10,8 @@ x-api: &api
   environment:
     DB_HOST: db
     REDIS_URL: redis://redis:6379/0
+    # false = el servidor no usa yt-dlp; YouTube se importa solo con la extensión del navegador
+    YTDLP_ENABLED: ${YTDLP_ENABLED:-true}
   volumes:
     - ./api:/rails
     - bundle_cache:/usr/local/bundle

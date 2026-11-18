@@ -11,7 +11,14 @@ class ImportYoutubeLessonJob
     lesson = Lesson.includes(:language, :user).find_by(id: lesson_id)
     return unless lesson&.status == "processing"
 
-    I18n.with_locale(lesson.user.ui_language) { import(lesson) }
+    I18n.with_locale(lesson.user.ui_language) do
+      # Si se apagó yt-dlp con trabajos ya en cola, no se consulta a YouTube: la lección queda marcada como fallida.
+      if Features.ytdlp_enabled?
+        import(lesson)
+      else
+        lesson.update!(status: "failed", error_message: I18n.t("errors.youtube.ytdlp_disabled"))
+      end
+    end
   end
 
   private
