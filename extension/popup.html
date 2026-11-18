@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="es">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>LinguaQ</title>
+        <link rel="stylesheet" href="popup.css" />
+    </head>
+    <body>
+        <header class="top">
+            <span class="logo">L</span>
+            <strong>LinguaQ</strong>
+            <span id="user" class="muted"></span>
+            <button id="open-settings" class="icon-button" type="button">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                    <path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6" />
+                </svg>
+            </button>
+        </header>
+
+        <main>
+            <section id="view-loading" class="center">
+                <span class="spinner"></span>
+                <p data-i18n="loading"></p>
+            </section>
+
+            <section id="view-login" class="center" hidden>
+                <h2 data-i18n="loginTitle"></h2>
+                <p class="muted" data-i18n="loginText"></p>
+                <button id="login-button" class="primary" type="button" data-i18n="loginButton"></button>
+            </section>
+
+            <section id="view-unsupported" class="center" hidden>
+                <h2 data-i18n="unsupportedTitle"></h2>
+                <p class="muted" data-i18n="unsupportedText"></p>
+            </section>
+
+            <form id="view-form" hidden>
+                <div class="video">
+                    <img id="thumb" alt="" />
+                    <label class="grow">
+                        <span data-i18n="title"></span>
+                        <textarea id="title" rows="2" maxlength="300" required></textarea>
+                    </label>
+                </div>
+
+                <label>
+                    <span data-i18n="language"></span>
+                    <select id="language"></select>
+                </label>
+
+                <label id="tracks-field" hidden>
+                    <span data-i18n="subtitles"></span>
+                    <select id="tracks"></select>
+                </label>
+                <p id="no-tracks" class="notice" hidden></p>
+
+                <label>
+                    <span data-i18n="course"></span>
+                    <select id="course"></select>
+                </label>
+                <input id="course-new" type="text" maxlength="200" hidden />
+
+                <label>
+                    <span data-i18n="level"></span>
+                    <select id="level">
+                        <option value="" data-i18n="noLevel"></option>
+                        <option value="beginner" data-i18n="beginner"></option>
+                        <option value="intermediate" data-i18n="intermediate"></option>
+                        <option value="advanced" data-i18n="advanced"></option>
+                    </select>
+                </label>
+
+                <label class="check">
+                    <input id="open-after" type="checkbox" />
+                    <span data-i18n="openAfter"></span>
+                </label>
+
+                <button id="import" class="primary" type="submit" data-i18n="import"></button>
+            </form>
+
+            <section id="view-progress" class="center" hidden>
+                <span class="spinner"></span>
+                <p data-i18n="importing"></p>
+            </section>
+
+            <section id="view-done" class="center" hidden>
+                <span class="done-icon">✓</span>
+                <h2 id="done-title"></h2>
+                <button id="open-lesson" class="primary" type="button" data-i18n="openLesson"></button>
+            </section>
+
+            <section id="view-error" class="center" hidden>
+                <p id="error-text" class="notice"></p>
+                <button id="error-back" type="button" data-i18n="retry"></button>
+            </section>
+
+            <form id="view-settings" hidden>
+                <h2 data-i18n="settings"></h2>
+                <label>
+                    <span data-i18n="apiUrl"></span>
+                    <input id="api-url" type="url" required />
+                </label>
+                <label>
+                    <span data-i18n="appUrl"></span>
+                    <input id="app-url" type="url" required />
+                </label>
+                <div class="row">
+                    <button id="settings-cancel" type="button" data-i18n="cancel"></button>
+                    <button class="primary" type="submit" data-i18n="save"></button>
+                </div>
+            </form>
+        </main>
+
+        <script type="module" src="popup.js"></script>
+    </body>
+</html>

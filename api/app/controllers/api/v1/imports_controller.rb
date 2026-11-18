@@ -13,7 +13,7 @@ module Api
       private
 
       def import_params
-        params.permit(:source, :course_id, :level, video: %i[id title author duration], track: %i[language kind format content])
+        params.permit(:source, :course_id, :course_title, :level, video: %i[id title author duration], track: %i[language kind format content])
       end
     end
   end

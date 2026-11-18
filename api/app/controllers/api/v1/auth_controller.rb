@@ -1,7 +1,13 @@
 module Api
   module V1
     class AuthController < ApplicationController
-      skip_before_action :authenticate!, only: %i[signup login]
+      include ActionController::Cookies
+
+      # Cookie con el token de sesión, solo para que la extensión del navegador pueda usar la sesión de la web.
+      # La API NO la acepta para autenticar (sigue exigiendo "Authorization: Bearer"), así que no abre la puerta a CSRF.
+      SESSION_COOKIE = "linguaq_token".freeze
+
+      skip_before_action :authenticate!, only: %i[signup login destroy_session]
 
       def signup
         unless Features.signups_enabled?
@@ -16,7 +22,9 @@ module Api
             user.update!(current_language: language)
           end
         end
-        render json: { token: JsonWebToken.encode(user.id), user: user }, status: :created
+        token = JsonWebToken.encode(user.id)
+        remember_session(token)
+        render json: { token: token, user: user }, status: :created
       end
 
       def login
@@ -24,14 +32,24 @@ module Api
         if user&.authenticate(params[:password].to_s)
           return render_error(I18n.t("errors.account_disabled"), :forbidden, code: "account_disabled") if user.disabled?
 
-          render json: { token: JsonWebToken.encode(user.id), user: user }
+          token = JsonWebToken.encode(user.id)
+          remember_session(token)
+          render json: { token: token, user: user }
         else
           render_error(I18n.t("errors.invalid_credentials"), :unauthorized)
         end
       end
 
+      # También renueva la cookie: así las sesiones abiertas antes de existir la extensión la obtienen al recargar la web
       def me
+        remember_session(request.authorization.to_s[/\ABearer (.+)\z/, 1])
         render json: current_user
+      end
+
+      # Cerrar sesión en la web borra la cookie, y con ella el acceso de la extensión
+      def destroy_session
+        cookies.delete(SESSION_COOKIE, same_site: :lax)
+        head :no_content
       end
 
       # Actualiza perfil, idioma actual e idiomas de estudio con su meta diaria.
@@ -54,6 +72,18 @@ module Api
       end
 
       private
+
+      def remember_session(token)
+        return if token.blank?
+
+        cookies[SESSION_COOKIE] = {
+          value: token,
+          httponly: true,
+          same_site: :lax,
+          secure: Rails.env.production?,
+          expires: JsonWebToken::TTL.from_now
+        }
+      end
 
       # Un idioma desactivado por el administrador no se puede empezar a estudiar (quien ya lo tenía lo conserva)
       def ensure_language_available!(user_language)

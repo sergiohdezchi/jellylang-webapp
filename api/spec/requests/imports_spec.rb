@@ -58,6 +58,45 @@ RSpec.describe "Importación desde la extensión", type: :request do
     expect(failed.reload).to have_attributes(status: "ready", error_message: nil, title: "How to sound smart")
   end
 
+  it "aplica el título editado también al reimportar" do
+    post "/api/v1/imports", params: payload, headers: headers, as: :json
+    post "/api/v1/imports", params: payload(video: { title: "Mi título" }), headers: headers, as: :json
+
+    expect(json["lesson"]["title"]).to eq("Mi título")
+  end
+
+  it "crea el curso indicado por nombre, o reutiliza el que ya existe" do
+    post "/api/v1/imports", params: payload(course_title: "Charlas TED", level: "intermediate"), headers: headers, as: :json
+    course = user.courses.find_by!(title: "Charlas TED")
+    expect(json["lesson"]).to include("course_id" => course.id, "level" => "intermediate")
+    expect(course.language).to eq(language)
+
+    post "/api/v1/imports", params: payload(video: { id: "dQw4w9WgXcQ" }, course_title: "charlas ted"), headers: headers, as: :json
+    expect(json["lesson"]["course_id"]).to eq(course.id)
+    expect(user.courses.count).to eq(1)
+  end
+
+  it "solo acepta cursos propios y del mismo idioma" do
+    other = create_user(email: "otro@example.com")
+    foreign = other.courses.create!(language: language, title: "Ajeno")
+    spanish = user.courses.create!(language: Language.find_or_create_by!(code: "es") { |l| l.name = "Español" }, title: "Otro idioma")
+
+    [foreign, spanish].each do |course|
+      post "/api/v1/imports", params: payload(course_id: course.id), headers: headers, as: :json
+      expect(response).to have_http_status(:unprocessable_entity)
+    end
+    expect(user.lessons.count).to eq(0)
+  end
+
+  it "acepta los códigos de idioma antiguos de YouTube (iw = he)" do
+    hebrew = Language.create!(code: "he", name: "עברית")
+    user.user_languages.create!(language: hebrew)
+    vtt = "WEBVTT\n\n00:00:01.000 --> 00:00:02.000\nשלום עולם.\n"
+
+    post "/api/v1/imports", params: payload(language_id: hebrew.id, track: { language: "iw", format: "vtt", content: vtt }), headers: headers, as: :json
+    expect(response).to have_http_status(:created)
+  end
+
   it "acepta subtítulos regionales del mismo idioma (en-GB)" do
     post "/api/v1/imports", params: payload(track: { language: "en-GB" }), headers: headers, as: :json
     expect(response).to have_http_status(:created)

@@ -10,3 +10,6 @@ api/tmp/*
 !api/tmp/.keep
 api/config/master.key
 .DS_Store
+
+# Extensión de LingQ usada solo como referencia (código de terceros: no se versiona)
+extension_example/

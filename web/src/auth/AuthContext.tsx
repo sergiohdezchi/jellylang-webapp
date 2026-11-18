@@ -35,6 +35,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [loading, setLoading] = useState(Boolean(getToken()));
 
     const logout = useCallback(() => {
+        // Borra también la cookie de sesión que usa la extensión del navegador (si falla, no importa)
+        api("/auth/session", { method: "DELETE" }).catch(() => {});
         setToken(null);
         setUser(null);
         queryClient.clear();

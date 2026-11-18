@@ -63,7 +63,7 @@ Usuario de demostración: **demo@linguaq.dev / password123** (administrador, con
 ## Características
 
 ### Biblioteca
-- Importar lecciones desde **YouTube** (con la [extensión del navegador](#importación-con-la-extensión-vía-oficial) o, si lo activas, por URL), **texto pegado**, **URL de artículo** y **archivos** TXT, SRT o VTT.
+- Importar lecciones desde **YouTube** (con la [extensión del navegador](#importación-con-la-extensión-del-navegador) o, si lo activas, por URL), **texto pegado**, **URL de artículo** y **archivos** TXT, SRT o VTT.
 - Cursos para agrupar lecciones; filtros por curso, nivel y título.
 - Las importaciones de YouTube se procesan en segundo plano y la tarjeta muestra el progreso.
 
@@ -136,18 +136,18 @@ Con la base de datos vacía el registro siempre está abierto, para poder crear 
 
 ## Cómo funciona
 
-### Importación con la extensión (vía oficial)
+### Importación con la extensión del navegador
 
-La **extensión del navegador** ([extension/](extension/README.md)) es la forma recomendada de importar videos de YouTube. Funciona desde tu navegador, con tu sesión, y **el servidor no consulta a YouTube**:
+La extensión ([extension/](extension/README.md)) es la forma recomendada de importar videos de YouTube. Sigue el mismo esquema que el importador de LingQ y funciona desde tu navegador, **sin que el servidor consulte a YouTube**:
 
-1. Abres un video de YouTube y pulsas el icono de la extensión.
-2. La extensión le pide al reproductor que cargue la pista de subtítulos del idioma que estudias y lee la respuesta que **el propio reproductor recibe** (no llama por su cuenta a ningún servicio de YouTube).
-3. Envía a `POST /api/v1/imports` los datos del video y los subtítulos (formato `json3`).
-4. La API los procesa igual que cualquier otro subtítulo: crea la lección, las frases con tiempos y, con subtítulos automáticos, el tiempo real de cada palabra.
+1. **Sesión:** inicias sesión en la web de LinguaQ. Al hacerlo, la API deja el token en la cookie `linguaq_token` (HttpOnly). La extensión la lee y no necesita un inicio de sesión propio; al salir de la web, la cookie se borra.
+2. **Datos del video:** al abrir un video, la extensión pide su información y sus pistas de subtítulos a la API del reproductor de YouTube (`youtubei/v1/player`), **identificándose como la app de Android**. Con ese cliente, YouTube devuelve URLs de subtítulos que se pueden descargar sin el token que exige su web.
+3. **Formulario:** en el popup eliges idioma, pista de subtítulos, curso (o uno nuevo) y nivel, y puedes editar el título.
+4. **Importación:** la extensión descarga la pista en formato `json3` y la envía a `POST /api/v1/imports`. La API crea las frases con tiempos y, con subtítulos automáticos, el tiempo real de cada palabra.
 
-Volver a importar el mismo video actualiza la lección en lugar de duplicarla. La extensión está pensada para sumar más fuentes (Netflix es la siguiente); cada fuente es un archivo en `extension/sources/`, y el servidor valida el origen en `Imports::Video::SOURCES`.
+Volver a importar el mismo video actualiza la lección en lugar de duplicarla.
 
-> Que la extensión lea los subtítulos desde tu navegador evita el scraping desde el servidor, pero **no es una vía aprobada por YouTube**. Consulta [Consideraciones legales](#consideraciones-legales).
+> La API del reproductor es **interna y no está aprobada por YouTube**; es la misma técnica que usa `yt-dlp`. La diferencia es que se ejecuta desde tu navegador y no desde el servidor. Consulta [Consideraciones legales](#consideraciones-legales).
 
 ### Importación de YouTube con yt-dlp (opcional)
 
@@ -254,14 +254,15 @@ Todas las rutas cuelgan de `/api/v1` y, salvo registro, login e idiomas, requier
 |--------|------|-------------|
 | POST | `/auth/signup` | Registro (devuelve JWT) |
 | POST | `/auth/login` | Login (devuelve JWT) |
-| GET | `/auth/me` | Usuario actual |
+| GET | `/auth/me` | Usuario actual (renueva también la cookie de sesión de la extensión) |
+| DELETE | `/auth/session` | Borra la cookie de sesión que usa la extensión (al cerrar sesión en la web) |
 | PATCH | `/auth/me` | Perfil, idiomas de estudio, metas e idioma actual |
 | GET | `/languages` | Idiomas disponibles |
 | GET, POST, PATCH, DELETE | `/courses` | Cursos |
 | GET | `/lessons` | Listar lecciones (`language_id`, `course_id`, `level`, `q`) |
 | POST | `/lessons` | Crear lección: `source_type` = `text` (`content`), `url` (`url`) o `file` (multipart) |
 | POST | `/lessons/youtube` | Importar desde YouTube con yt-dlp (respuesta 202; `403` si `YTDLP_ENABLED=false`) |
-| POST | `/imports` | Crear o actualizar una lección desde un cliente externo (la extensión): `source`, `language_id`, `video`, `track` con `format` (`json3`, `vtt` o `srt`) y `content` |
+| POST | `/imports` | Crear o actualizar una lección desde un cliente externo (la extensión): `source`, `language_id`, `video`, `track` con `format` (`json3`, `vtt` o `srt`) y `content`; opcionales `course_id` o `course_title` (crea el curso si no existe) y `level` |
 | GET | `/config` | Capacidades del servidor (`ytdlp_enabled`, `signups_enabled`, `import_sources`); no requiere sesión |
 | GET | `/admin/overview` | Resumen del sistema (solo administradores, como todo `/admin`) |
 | GET, PATCH, DELETE | `/admin/settings[/:key]` | Ver, cambiar o restablecer ajustes (`ytdlp_enabled`, `signups_enabled`) |
@@ -314,10 +315,9 @@ Los errores se devuelven como `{ "error": "mensaje" }` en el idioma de interfaz 
 │   ├── bin/docker-entrypoint
 │   └── Dockerfile
 ├── extension/                          # Extensión de Chrome/Edge/Brave (Manifest V3)
-│   ├── content/                        # scripts que corren en la página de YouTube
-│   ├── sources/                        # una fuente por servicio (youtube.js; Netflix irá aquí)
-│   ├── popup/ lib/ icons/
-│   └── background.js                   # orquesta la importación
+│   ├── youtube/                        # inject.js · worker.js (en la página) · contentscript.js
+│   ├── lib/ icons/
+│   └── popup.html · popup.js           # formulario de importación
 ├── web/                                # React
 │   ├── src/
 │   │   ├── api/                        # cliente fetch y tipos
@@ -442,7 +442,7 @@ Genera secretos con `openssl rand -hex 64`. No subas `.env` al repositorio (ya e
 - [ ] OAuth con Google
 - [ ] Respaldo con Whisper para videos sin subtítulos
 - [ ] Soporte para chino, japonés y coreano (requiere segmentación de palabras)
-- [x] Extensión de navegador para importar videos de YouTube (vía oficial) y flag para apagar yt-dlp
+- [x] Extensión de navegador para importar videos de YouTube (usa la sesión de la web) y flag para apagar yt-dlp
 - [x] Panel de administración: ajustes, usuarios e idiomas
 - [ ] Importar desde Netflix con la extensión
 - [ ] Extensión: importar páginas web y artículos
@@ -460,7 +460,7 @@ Genera secretos con `openssl rand -hex 64`. No subas `.env` al repositorio (ya e
 - Respeta los [Términos de Servicio de YouTube](https://www.youtube.com/t/terms) y la política de su API.
 - Las transcripciones y los artículos pertenecen a sus autores: úsalos para el estudio personal y no los publiques como contenido propio.
 - La importación de artículos bloquea direcciones de red privadas para evitar SSRF, pero si despliegas el proyecto públicamente revisa también límites de uso.
-- **Extensión del navegador:** lee los subtítulos que el propio reproductor de YouTube carga en tu navegador, con tu sesión, y no llama a ningún servicio de YouTube por su cuenta. Es la vía recomendada porque el servidor no hace scraping, pero **YouTube no la respalda**: sus términos restringen el acceso automatizado a sus contenidos. Úsala para estudio personal.
+- **Extensión del navegador:** obtiene los subtítulos llamando, desde tu navegador, a la API interna del reproductor de YouTube con el cliente de Android (como el importador de LingQ). Evita que el servidor haga scraping, pero **no es una vía aprobada por YouTube**: es la misma técnica que `yt-dlp` y sus términos restringen el acceso automatizado. Úsala para estudio personal.
 - **Subtítulos y metadatos con `yt-dlp`:** es la parte que no es oficial. Puedes apagarla con `YTDLP_ENABLED=false`. La API oficial de YouTube solo permite descargar los subtítulos de videos de los que eres propietario, así que para videos ajenos no hay alternativa oficial. Obtenerlos con `yt-dlp` puede chocar con los Términos de Servicio de YouTube; úsalo solo para estudio personal y revisa este punto antes de desplegar el proyecto públicamente. La subida manual de SRT/VTT no depende de YouTube.
 - `yt-dlp` puede dejar de funcionar si YouTube cambia su sitio: actualiza la imagen con regularidad y mantén la subida manual de subtítulos como alternativa.
 

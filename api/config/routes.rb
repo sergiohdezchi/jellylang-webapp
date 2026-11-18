@@ -11,6 +11,7 @@ Rails.application.routes.draw do
       post "auth/login", to: "auth#login"
       get "auth/me", to: "auth#me"
       patch "auth/me", to: "auth#update"
+      delete "auth/session", to: "auth#destroy_session"
 
       get "config", to: "config#show"
       resources :languages, only: :index

@@ -1,0 +1,260 @@
+:root {
+    --bg: #f6f4ef;
+    --surface: #fff;
+    --border: #e3dfd5;
+    --text: #1d2125;
+    --muted: #646b73;
+    --accent: #0f766e;
+    --accent-hover: #0b5f58;
+    --accent-contrast: #fff;
+    --danger: #b42318;
+    --danger-soft: #fde8e6;
+    color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #14171a;
+        --surface: #1c2024;
+        --border: #30363d;
+        --text: #e8e6e1;
+        --muted: #9aa3ad;
+        --accent: #2dd4bf;
+        --accent-hover: #5eead4;
+        --accent-contrast: #0b1f1d;
+        --danger: #ff8a7a;
+        --danger-soft: #3b1a17;
+        color-scheme: dark;
+    }
+}
+
+* {
+    box-sizing: border-box;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+body {
+    width: 360px;
+    min-height: 160px;
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px 10px 14px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+}
+
+.logo {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 7px;
+    background: var(--accent);
+    color: var(--accent-contrast);
+    font-weight: 800;
+    font-size: 13px;
+}
+
+#user {
+    margin-left: auto;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 12px;
+}
+
+.icon-button {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    min-height: 30px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--muted);
+}
+
+#user:empty + .icon-button {
+    margin-left: auto;
+}
+
+main {
+    padding: 14px;
+}
+
+main > section,
+main > form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.center {
+    align-items: center;
+    text-align: center;
+    padding: 12px 4px;
+}
+
+h2 {
+    margin: 0;
+    font-size: 16px;
+}
+
+p {
+    margin: 0;
+}
+
+.muted {
+    color: var(--muted);
+}
+
+label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+}
+
+.grow {
+    flex: 1;
+    min-width: 0;
+}
+
+input[type="text"],
+input[type="url"],
+select,
+textarea {
+    width: 100%;
+    min-height: 34px;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+    font-weight: 400;
+}
+
+textarea {
+    resize: none;
+    font-weight: 600;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 0;
+}
+
+.check {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    color: var(--text);
+    cursor: pointer;
+}
+
+.video {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.video img {
+    width: 104px;
+    aspect-ratio: 16 / 9;
+    margin-top: 20px;
+    object-fit: cover;
+    border-radius: 6px;
+    background: var(--border);
+    flex-shrink: 0;
+}
+
+button {
+    min-height: 36px;
+    padding: 0 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.primary {
+    width: 100%;
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--accent-contrast);
+}
+
+.primary:hover:not(:disabled) {
+    background: var(--accent-hover);
+}
+
+.row {
+    display: flex;
+    gap: 8px;
+}
+
+.row button {
+    flex: 1;
+}
+
+.notice {
+    padding: 9px 12px;
+    border-radius: 8px;
+    background: var(--danger-soft);
+    color: var(--danger);
+    font-size: 13px;
+    text-align: left;
+}
+
+.spinner {
+    width: 26px;
+    height: 26px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.done-icon {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--accent-contrast);
+    font-size: 22px;
+    font-weight: 700;
+}

@@ -28,6 +28,7 @@ en:
       invalid_format: "The subtitles are not in a valid format"
       unsupported_format: "Unsupported subtitle format: %{name}"
       language_mismatch: "The subtitles are in '%{track}', but the lesson is in '%{language}'"
+      invalid_course: "That course doesn't exist or isn't in this language"
       too_large: "The subtitles are too large (max 5 MB)"
     article:
       invalid_url: "Invalid or unreachable URL"
