@@ -15,6 +15,8 @@ gem "rack-cors"
 
 # Jobs en segundo plano y caché
 gem "sidekiq", "~> 7.3"
+# connection_pool 3.x rompe Sidekiq 7.3 (el planificador de reintentos falla al arrancar)
+gem "connection_pool", "~> 2.5"
 gem "redis", "~> 5.3"
 
 # Parseo de HTML para importar artículos

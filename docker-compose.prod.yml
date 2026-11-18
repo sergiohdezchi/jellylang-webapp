@@ -1,0 +1,99 @@
+# Producción en un VPS detrás de un Caddy que ya corre en Docker.
+#
+#   docker compose -f docker-compose.prod.yml up -d --build
+#
+# Solo el contenedor "jellylang-web" se une a la red del proxy; Caddy le habla por su nombre.
+# Los demás servicios viven en la red interna del proyecto. Todos los nombres llevan el prefijo
+# "jellylang-" para no chocar con otros contenedores (por ejemplo "web" o "api") de la red del proxy.
+name: jellylang
+
+x-api: &api
+  build:
+    context: ./api
+    dockerfile: Dockerfile.prod
+  restart: unless-stopped
+  environment:
+    RAILS_ENV: production
+    DB_HOST: jellylang-db
+    DB_USER: ${DB_USER:-jellylang}
+    DB_PASSWORD: ${DB_PASSWORD:?define DB_PASSWORD en .env}
+    REDIS_URL: redis://jellylang-redis:6379/0
+    SECRET_KEY_BASE: ${SECRET_KEY_BASE:?define SECRET_KEY_BASE en .env}
+    JWT_SECRET: ${JWT_SECRET:?define JWT_SECRET en .env}
+    YTDLP_ENABLED: ${YTDLP_ENABLED:-false}
+    SIGNUPS_ENABLED: ${SIGNUPS_ENABLED:-true}
+    DEEPL_API_KEY: ${DEEPL_API_KEY:-}
+    ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+    ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+    EXAMPLE_EMAIL: ${EXAMPLE_EMAIL:-}
+    EXAMPLE_PASSWORD: ${EXAMPLE_PASSWORD:-}
+  depends_on:
+    jellylang-db:
+      condition: service_healthy
+    jellylang-redis:
+      condition: service_healthy
+
+services:
+  jellylang-db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-jellylang}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?define DB_PASSWORD en .env}
+      POSTGRES_DB: jellylang_production
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-jellylang}"]
+      interval: 5s
+      retries: 10
+
+  jellylang-redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 10
+
+  # Crea la base de datos, migra y ejecuta los seeds (administrador y usuario de ejemplo) al arrancar
+  jellylang-api:
+    <<: *api
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:3000/up"]
+      interval: 10s
+      start_period: 90s
+      retries: 10
+
+  jellylang-worker:
+    <<: *api
+    command: bundle exec sidekiq -C config/sidekiq.yml
+    depends_on:
+      jellylang-api:
+        condition: service_healthy
+
+  # nginx: sirve la SPA y reenvía /api a jellylang-api. Es lo único que ve Caddy.
+  jellylang-web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile.prod
+    restart: unless-stopped
+    depends_on:
+      jellylang-api:
+        condition: service_healthy
+    networks:
+      - default
+      - proxy
+
+networks:
+  # Red de Docker compartida con Caddy (la que usa su "reverse_proxy"). Su nombre se cambia con PROXY_NETWORK.
+  proxy:
+    external: true
+    name: ${PROXY_NETWORK:-proxy}
+
+volumes:
+  postgres_data:
+  redis_data:

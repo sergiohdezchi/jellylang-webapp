@@ -1,0 +1,32 @@
+# Imagen de producción de la API y del worker de Sidekiq.
+FROM ruby:3.3-slim
+
+ENV RAILS_ENV=production \
+    BUNDLE_DEPLOYMENT=1 \
+    BUNDLE_WITHOUT="development:test"
+
+RUN apt-get update -qq && apt-get install -y --no-install-recommends \
+      build-essential libpq-dev libyaml-dev git curl ca-certificates python3 unzip \
+    && rm -rf /var/lib/apt/lists/*
+
+# yt-dlp solo se usa si el panel de administración lo activa (YTDLP_ENABLED=false por defecto);
+# deno es el runtime JS que necesita para algunas peticiones de YouTube.
+RUN curl -fsSL https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp \
+      -o /usr/local/bin/yt-dlp && chmod a+rx /usr/local/bin/yt-dlp \
+    && curl -fsSL https://deno.land/install.sh | DENO_INSTALL=/usr/local sh -s -- -y --no-modify-path
+
+RUN groupadd -g 1000 app && useradd -m -u 1000 -g 1000 app \
+    && mkdir -p /rails && chown -R app:app /rails /usr/local/bundle
+
+WORKDIR /rails
+USER app
+
+COPY --chown=app:app Gemfile Gemfile.lock ./
+RUN bundle install && rm -rf ~/.bundle/cache /usr/local/bundle/cache
+
+COPY --chown=app:app . .
+RUN mkdir -p tmp/pids log
+
+ENTRYPOINT ["/rails/bin/docker-entrypoint"]
+EXPOSE 3000
+CMD ["bin/rails", "server", "-b", "0.0.0.0", "-p", "3000"]

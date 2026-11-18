@@ -42,10 +42,11 @@ Usuarios iniciales (solo en desarrollo; ver [Usuarios iniciales (seeds)](#usuari
 6. [API REST](#api-rest)
 7. [Estructura del proyecto](#estructura-del-proyecto)
 8. [Desarrollo](#desarrollo)
-9. [Variables de entorno](#variables-de-entorno)
-10. [Solución de problemas](#solución-de-problemas)
-11. [Roadmap](#roadmap)
-12. [Consideraciones legales](#consideraciones-legales)
+9. [Despliegue en producción](#despliegue-en-producción)
+10. [Variables de entorno](#variables-de-entorno)
+11. [Solución de problemas](#solución-de-problemas)
+12. [Roadmap](#roadmap)
+13. [Consideraciones legales](#consideraciones-legales)
 
 ---
 
@@ -334,7 +335,8 @@ Los errores se devuelven como `{ "error": "mensaje" }` en el idioma de interfaz 
 │   ├── db/
 │   ├── spec/
 │   ├── bin/docker-entrypoint
-│   └── Dockerfile
+│   ├── Dockerfile
+│   └── Dockerfile.prod                 # imagen de producción
 ├── extension/                          # Extensión de Chrome/Edge/Brave (Manifest V3)
 │   ├── youtube/                        # inject.js · worker.js (en la página) · contentscript.js
 │   ├── lib/ icons/   (icono: la medusa de Jellylang)
@@ -352,9 +354,13 @@ Los errores se devuelven como `{ "error": "mensaje" }` en el idioma de interfaz 
 │   │   ├── lib/                        # tokenize, segments, wordTiming, readingZone (+ tests)
 │   │   ├── pages/
 │   │   └── styles/                     # variables, mixins, estilos globales
-│   └── Dockerfile
-├── docker-compose.yml
+│   ├── Dockerfile
+│   ├── Dockerfile.prod                 # imagen de producción (SPA compilada + nginx)
+│   └── nginx.conf                      # SPA + proxy de /api
+├── docker-compose.yml                  # desarrollo
+├── docker-compose.prod.yml             # producción (detrás de Caddy)
 ├── .env.example
+├── .env.production.example
 └── README.md
 ```
 
@@ -388,9 +394,73 @@ Notas:
 
 ---
 
+## Despliegue en producción
+
+Pensado para un VPS con Docker y un **Caddy** que ya corre en un contenedor y hace de proxy (HTTPS automático). Archivos: `docker-compose.prod.yml`, `api/Dockerfile.prod`, `web/Dockerfile.prod` y `web/nginx.conf`.
+
+```
+Internet ─► Caddy (HTTPS) ─► jellylang-web (nginx) ─┬─► SPA estática
+                                                    └─► /api ─► jellylang-api (Rails)
+                                       jellylang-worker (Sidekiq) · jellylang-db · jellylang-redis
+```
+
+Solo `jellylang-web` se une a la red de Docker del proxy. El resto queda en la red interna del proyecto y no publica puertos. Todos los servicios llevan el prefijo `jellylang-` para no chocar con contenedores de la red de Caddy que ya se llaman `web` o `nginx`.
+
+**1. Caddy.** Añade un bloque (con `JELLYLANG_DOMAIN=jellylang.com` en el entorno de Caddy, o escribe el dominio directamente) y recarga:
+
+```caddyfile
+{$JELLYLANG_DOMAIN} {
+        encode zstd gzip
+        header Strict-Transport-Security "max-age=31536000"
+        reverse_proxy jellylang-web:80
+}
+```
+
+Los registros DNS `A` (y `AAAA`) de `jellylang.com` deben apuntar a la IP del VPS.
+
+**2. Configuración.** En el servidor:
+
+```bash
+git clone <repositorio> jellylang && cd jellylang
+cp .env.production.example .env
+# Rellena DB_PASSWORD, SECRET_KEY_BASE y JWT_SECRET (openssl rand -hex 64)
+# y PROXY_NETWORK con el nombre de la red de Caddy (docker network ls | docker inspect <contenedor-caddy>)
+```
+
+**3. Arranque.**
+
+```bash
+docker compose -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.prod.yml logs jellylang-api | grep -i "contraseña"   # contraseñas generadas
+```
+
+Al primer arranque la API crea la base de datos, migra y ejecuta los seeds (ver [Usuarios iniciales](#usuarios-iniciales-seeds)). Define `ADMIN_PASSWORD` en `.env` o guarda la contraseña que se imprime una sola vez.
+
+**4. Actualizar.**
+
+```bash
+git pull
+docker compose -f docker-compose.prod.yml up -d --build   # las migraciones se aplican solas
+```
+
+**5. Copia de seguridad de la base de datos.**
+
+```bash
+docker compose -f docker-compose.prod.yml exec -T jellylang-db pg_dump -U jellylang -Fc jellylang_production > jellylang-$(date +%F).dump
+```
+
+Notas:
+
+- La web y la API comparten origen (`https://jellylang.com` y `/api`), así que no hace falta configurar CORS y la cookie de sesión de la extensión funciona sin más.
+- `YTDLP_ENABLED` es `false` por defecto en producción: se importa con la extensión o subiendo SRT/VTT. Se puede activar desde `/admin`.
+- **Extensión:** por defecto apunta a `localhost`. En el icono de ajustes del popup, pon la API `https://jellylang.com` y la web `https://jellylang.com`.
+- Los volúmenes `postgres_data` y `redis_data` guardan los datos; `docker compose down` los conserva, `down -v` los borra.
+
+---
+
 ## Variables de entorno
 
-`.env.example`:
+`.env.example` (desarrollo; para producción, `.env.production.example`):
 
 ```env
 # Base de datos (el host y Redis los fija docker-compose.yml)
