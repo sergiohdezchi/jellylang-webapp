@@ -23,7 +23,12 @@ Al arrancar, la API crea la base de datos, ejecuta las migraciones y carga los d
 | API | http://localhost:3000/api/v1 |
 | Panel de Sidekiq (solo desarrollo) | http://localhost:3000/sidekiq |
 
-Usuario de demostración: **demo@jellylang.dev / password123** (administrador, con una lección de ejemplo en inglés).
+Usuarios iniciales (solo en desarrollo; ver [Usuarios iniciales (seeds)](#usuarios-iniciales-seeds)):
+
+| Usuario | Email | Contraseña |
+|---------|-------|------------|
+| Administrador | admin@jellylang.com | password123 |
+| Ejemplo (español → inglés, con una lección) | example@jellylang.com | password123 |
 
 ---
 
@@ -119,12 +124,26 @@ Usuario de demostración: **demo@jellylang.dev / password123** (administrador, c
 
 **Ajustes: panel, entorno y valor por defecto.** Cada ajuste usa el valor guardado en el panel; si no hay, el de su variable de entorno (`YTDLP_ENABLED`, `SIGNUPS_ENABLED`); y si tampoco, el valor por defecto (activado). El panel indica de dónde sale el valor y permite volver al de la variable de entorno.
 
-**Primer administrador.** El usuario demo ya lo es. En una instalación nueva, regístrate y ejecuta:
+**Primer administrador.** Lo crean los seeds (ver [Usuarios iniciales (seeds)](#usuarios-iniciales-seeds)). Para convertir en administrador a un usuario que ya existe:
 
 ```bash
 docker compose exec api bin/rails "admin:grant[tu@email.com]"
 docker compose exec api bin/rails admin:list      # ver administradores
 ```
+
+### Usuarios iniciales (seeds)
+
+`api/db/seeds.rb` crea los idiomas, un **administrador** y un **usuario de ejemplo** (habla español, aprende inglés, con un curso y una lección). Se ejecuta solo al crear la base de datos; para lanzarlo a mano (por ejemplo, en el servidor):
+
+```bash
+docker compose exec api bin/rails db:seed
+```
+
+- Es **idempotente**: solo crea lo que falta y nunca cambia la contraseña de un usuario que ya existe.
+- Los datos se configuran con variables de entorno: `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `EXAMPLE_EMAIL` y `EXAMPLE_PASSWORD`.
+- En desarrollo y pruebas, las contraseñas por defecto son `password123` (`admin@jellylang.com` y `example@jellylang.com`).
+- **En producción no hay contraseñas por defecto.** Si no defines `ADMIN_PASSWORD` o `EXAMPLE_PASSWORD`, se genera una aleatoria y se muestra una sola vez en la salida del comando. Guárdala, o define las variables antes de ejecutar los seeds.
+- Si no quieres el usuario de ejemplo en producción, bórralo desde el panel de administración después del primer arranque.
 
 Con la base de datos vacía el registro siempre está abierto, para poder crear la primera cuenta.
 

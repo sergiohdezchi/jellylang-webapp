@@ -58,7 +58,6 @@ export default function LoginPage() {
             <p className={styles.footer} hidden={config?.signups_enabled === false}>
                 {t("auth.no_account")} <Link to="/signup">{t("auth.signup.submit")}</Link>
             </p>
-            {import.meta.env.DEV && <p className={styles.hint}>{t("auth.demo_hint")}</p>}
         </AuthShell>
     );
 }

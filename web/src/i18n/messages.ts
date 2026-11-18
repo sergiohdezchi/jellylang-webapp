@@ -31,7 +31,6 @@ const es = {
     "auth.study_language": "Quiero aprender",
     "auth.no_account": "¿No tienes cuenta?",
     "auth.have_account": "¿Ya tienes cuenta?",
-    "auth.demo_hint": "Demo: demo@jellylang.dev / password123",
 
     "library.title": "Biblioteca",
     "library.search": "Buscar lecciones…",
@@ -310,7 +309,6 @@ const en: Record<MessageKey, string> = {
     "auth.study_language": "I want to learn",
     "auth.no_account": "Don't have an account?",
     "auth.have_account": "Already have an account?",
-    "auth.demo_hint": "Demo: demo@jellylang.dev / password123",
 
     "library.title": "Library",
     "library.search": "Search lessons…",
