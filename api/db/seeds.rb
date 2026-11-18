@@ -12,7 +12,7 @@ if Rails.env.development?
   english = Language.find_by!(code: "en")
   user = User.find_or_initialize_by(email: "demo@linguaq.dev")
   if user.new_record?
-    user.assign_attributes(name: "Demo", password: "password123", native_language: "es", current_language: english)
+    user.assign_attributes(name: "Demo", password: "password123", native_language: "es", current_language: english, admin: true)
     user.save!
     user.user_languages.create!(language: english, daily_goal: 20)
 
@@ -33,5 +33,5 @@ if Rails.env.development?
     TEXT
   end
 
-  puts "Usuario demo: demo@linguaq.dev / password123"
+  puts "Usuario demo (administrador): demo@linguaq.dev / password123"
 end

@@ -4,6 +4,9 @@ en:
     unauthorized: "Please sign in"
     invalid_credentials: "Invalid email or password"
     need_language: "Choose at least one language to study"
+    signups_disabled: "Sign-ups are closed. Ask an administrator to create an account for you."
+    account_disabled: "Your account is disabled. Contact an administrator."
+    language_disabled: "The %{language} language is not available."
     invalid_status: "Invalid word status"
     invalid_rating: "Invalid rating"
     youtube:
@@ -13,6 +16,12 @@ en:
       no_subtitles: "The video has no subtitles in '%{language}'. Upload an SRT/VTT file instead."
       ytdlp_missing: "yt-dlp is not installed on the server"
       ytdlp_disabled: "yt-dlp imports are turned off on this server. Import the video with the LinguaQ extension or upload an SRT/VTT file."
+    admin:
+      forbidden: "Administrator permissions required"
+      self: "You can't remove your own admin role, disable or delete yourself"
+      last_admin: "At least one active administrator must remain"
+      language_in_use: "That language is in use: disable it instead of deleting it"
+      unknown_setting: "Unknown setting: %{key}"
     import:
       source_unsupported: "Unsupported import source: %{source}"
       invalid_video: "The video identifier is not valid"

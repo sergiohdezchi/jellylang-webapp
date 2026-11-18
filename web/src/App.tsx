@@ -12,6 +12,7 @@ import VocabularyPage from "./pages/VocabularyPage";
 import ReviewPage from "./pages/ReviewPage";
 import StatsPage from "./pages/StatsPage";
 import SettingsPage from "./pages/SettingsPage";
+import AdminPage from "./pages/admin/AdminPage";
 
 function RequireAuth({ children }: { children: ReactNode }) {
     const { user, loading } = useAuth();
@@ -27,6 +28,11 @@ function RequireAuth({ children }: { children: ReactNode }) {
     if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
     if (!user.current_language && location.pathname !== "/settings") return <Navigate to="/settings" replace />;
     return <>{children}</>;
+}
+
+function RequireAdmin({ children }: { children: ReactNode }) {
+    const { user } = useAuth();
+    return user?.admin ? <>{children}</> : <Navigate to="/" replace />;
 }
 
 export default function App() {
@@ -55,6 +61,14 @@ export default function App() {
                 <Route path="review" element={<ReviewPage />} />
                 <Route path="stats" element={<StatsPage />} />
                 <Route path="settings" element={<SettingsPage />} />
+                <Route
+                    path="admin"
+                    element={
+                        <RequireAdmin>
+                            <AdminPage />
+                        </RequireAdmin>
+                    }
+                />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

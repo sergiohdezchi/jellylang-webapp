@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { useI18n } from "../i18n/I18nProvider";
+import { useConfig } from "../hooks/useConfig";
 import AuthShell from "./AuthShell";
 import styles from "./Auth.module.scss";
 
@@ -13,6 +14,7 @@ export default function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState<string | null>(null);
+    const { data: config } = useConfig();
     const [busy, setBusy] = useState(false);
 
     async function handleSubmit(event: FormEvent) {
@@ -53,7 +55,7 @@ export default function LoginPage() {
                     {t("auth.login.submit")}
                 </button>
             </form>
-            <p className={styles.footer}>
+            <p className={styles.footer} hidden={config?.signups_enabled === false}>
                 {t("auth.no_account")} <Link to="/signup">{t("auth.signup.submit")}</Link>
             </p>
             {import.meta.env.DEV && <p className={styles.hint}>{t("auth.demo_hint")}</p>}

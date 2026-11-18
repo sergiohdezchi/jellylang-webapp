@@ -15,6 +15,7 @@ export interface User {
     name: string | null;
     ui_language: "es" | "en";
     native_language: string;
+    admin: boolean;
     current_language: Language | null;
     languages: StudyLanguage[];
 }
@@ -145,5 +146,55 @@ export interface Translation {
 export interface AppConfig {
     /** El servidor puede importar videos de YouTube por URL con yt-dlp */
     ytdlp_enabled: boolean;
+    /** Cualquiera puede crear una cuenta */
+    signups_enabled: boolean;
     import_sources: string[];
+}
+
+// ---- Panel de administración ----------------------------------------------------------------
+
+export interface AdminOverview {
+    users: { total: number; admins: number; disabled: number; new_this_week: number; active_this_week: number };
+    lessons: { total: number; youtube: number; processing: number; failed: number };
+    lingqs: number;
+    reviews_this_week: number;
+    languages: number;
+    failed_imports: {
+        id: number;
+        title: string;
+        youtube_id: string | null;
+        error_message: string | null;
+        user_email: string;
+        updated_at: string;
+    }[];
+}
+
+export type SettingKey = "ytdlp_enabled" | "signups_enabled";
+
+export interface AdminSetting {
+    key: SettingKey;
+    value: boolean;
+    /** De dónde sale el valor: el panel, la variable de entorno o el valor por defecto */
+    source: "panel" | "env" | "default";
+    env: string;
+    updated_at?: string;
+}
+
+export interface AdminUser {
+    id: number;
+    email: string;
+    name: string | null;
+    admin: boolean;
+    disabled: boolean;
+    current_language: string | null;
+    lessons_count: number;
+    lingqs_count: number;
+    last_active_on: string | null;
+    created_at: string;
+}
+
+export interface AdminLanguage extends Language {
+    enabled: boolean;
+    users_count: number;
+    lessons_count: number;
 }

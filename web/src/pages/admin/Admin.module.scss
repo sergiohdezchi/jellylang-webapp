@@ -1,0 +1,322 @@
+@use "../../styles/mixins" as *;
+
+.stack {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    :global(.alert) {
+        margin: 0;
+    }
+
+    h2 {
+        margin: 0 0 10px;
+    }
+}
+
+// ---- Resumen ------------------------------------------------------------------------------
+.tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 12px;
+}
+
+.tile {
+    @include card;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 16px;
+
+    &.warn {
+        border-color: var(--danger);
+    }
+}
+
+.tileLabel {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+.tileValue {
+    font-size: 1.6rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.tileDetail {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+// ---- Tablas -------------------------------------------------------------------------------
+.tableCard {
+    padding: 0;
+    overflow: hidden;
+}
+
+.tableWrap {
+    overflow-x: auto;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+
+    th,
+    td {
+        padding: 10px 14px;
+        text-align: left;
+        vertical-align: middle;
+        border-bottom: 1px solid var(--border);
+    }
+
+    th {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--text-muted);
+        background: var(--surface-2);
+        white-space: nowrap;
+    }
+
+    tbody tr:last-child td {
+        border-bottom: 0;
+    }
+
+    code {
+        font-size: 0.85rem;
+        padding: 2px 6px;
+        border-radius: 4px;
+        background: var(--surface-2);
+    }
+}
+
+.num {
+    text-align: right !important;
+    font-variant-numeric: tabular-nums;
+}
+
+.nowrap {
+    white-space: nowrap;
+}
+
+.errorCell {
+    max-width: 380px;
+    color: var(--danger);
+    font-size: 0.85rem;
+}
+
+.dimmed td {
+    color: var(--text-muted);
+}
+
+.userCell {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 200px;
+}
+
+.badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+
+    &:empty {
+        display: none;
+    }
+}
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-width: 260px;
+}
+
+.inlineInput {
+    width: 100%;
+    min-width: 140px;
+    padding: 4px 8px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+
+    &:hover {
+        border-color: var(--border);
+    }
+
+    &:focus {
+        outline: none;
+        border-color: var(--accent);
+        background: var(--surface);
+    }
+}
+
+.toolbar {
+    display: grid;
+    grid-template-columns: 1fr 200px;
+    gap: 12px;
+
+    @include mobile {
+        grid-template-columns: 1fr;
+    }
+}
+
+.pager {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+}
+
+// ---- Ajustes ------------------------------------------------------------------------------
+.setting {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+
+    @include mobile {
+        flex-direction: column;
+        gap: 12px;
+    }
+}
+
+.settingText {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    h2 {
+        margin: 0;
+    }
+
+    p {
+        margin: 0;
+        max-width: 640px;
+    }
+}
+
+.source {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    color: var(--text-muted);
+}
+
+// Interruptor accesible: un checkbox real con apariencia de switch
+.switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    flex-shrink: 0;
+
+    input {
+        position: absolute;
+        opacity: 0;
+        width: 1px;
+        height: 1px;
+    }
+
+    span {
+        position: relative;
+        width: 44px;
+        height: 24px;
+        border-radius: 999px;
+        background: var(--border);
+        transition: background-color 150ms ease;
+
+        &::after {
+            content: "";
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--surface);
+            box-shadow: 0 1px 2px rgb(0 0 0 / 25%);
+            transition: transform 150ms ease;
+        }
+    }
+
+    input:checked + span {
+        background: var(--accent);
+
+        &::after {
+            transform: translateX(20px);
+        }
+    }
+
+    input:focus-visible + span {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+    }
+
+    input:disabled + span {
+        opacity: 0.6;
+    }
+
+    strong {
+        min-width: 90px;
+        font-size: 0.9rem;
+    }
+}
+
+// ---- Formularios --------------------------------------------------------------------------
+.summary {
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.newUser {
+    margin-top: 16px;
+}
+
+.formFooter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.check {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.addLanguage {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    h2 {
+        margin: 0 0 8px;
+    }
+}
+
+.addRow {
+    display: grid;
+    grid-template-columns: 120px 1fr auto;
+    gap: 12px;
+    align-items: end;
+
+    :global(.field) {
+        margin: 0;
+    }
+
+    @include mobile {
+        grid-template-columns: 1fr;
+    }
+}

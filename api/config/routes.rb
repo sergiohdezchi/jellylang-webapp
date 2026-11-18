@@ -41,6 +41,14 @@ Rails.application.routes.draw do
       post "stats/activity", to: "stats#activity"
 
       get "dictionary", to: "dictionary#show"
+
+      # Panel de administración (solo usuarios con admin = true)
+      namespace :admin do
+        get "overview", to: "overview#show"
+        resources :settings, only: %i[index update destroy]
+        resources :users, only: %i[index create update destroy]
+        resources :languages, only: %i[index create update destroy]
+      end
     end
   end
 end

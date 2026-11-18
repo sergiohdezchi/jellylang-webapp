@@ -4,10 +4,14 @@ module Api
       skip_before_action :authenticate!, only: %i[signup login]
 
       def signup
+        unless Features.signups_enabled?
+          raise ApiError.new(I18n.t("errors.signups_disabled"), status: :forbidden, code: "signups_disabled")
+        end
+
         user = User.new(params.permit(:email, :password, :name, :ui_language, :native_language))
         User.transaction do
           user.save!
-          if (language = Language.find_by(id: params[:study_language_id]))
+          if (language = Language.enabled.find_by(id: params[:study_language_id]))
             user.user_languages.create!(language: language)
             user.update!(current_language: language)
           end
@@ -18,6 +22,8 @@ module Api
       def login
         user = User.find_by("lower(email) = ?", params[:email].to_s.strip.downcase)
         if user&.authenticate(params[:password].to_s)
+          return render_error(I18n.t("errors.account_disabled"), :forbidden, code: "account_disabled") if user.disabled?
+
           render json: { token: JsonWebToken.encode(user.id), user: user }
         else
           render_error(I18n.t("errors.invalid_credentials"), :unauthorized)
@@ -39,6 +45,7 @@ module Api
 
           if params[:current_language_id].present?
             language = Language.find(params[:current_language_id])
+            ensure_language_available!(current_user.user_languages.find_or_initialize_by(language: language))
             current_user.user_languages.find_or_create_by!(language: language)
             current_user.update!(current_language: language)
           end
@@ -48,6 +55,13 @@ module Api
 
       private
 
+      # Un idioma desactivado por el administrador no se puede empezar a estudiar (quien ya lo tenía lo conserva)
+      def ensure_language_available!(user_language)
+        return unless user_language.new_record? && !user_language.language.enabled?
+
+        raise ApiError, I18n.t("errors.language_disabled", language: user_language.language.name)
+      end
+
       def sync_study_languages(list)
         entries = Array(list).map { |item| item.permit(:language_id, :daily_goal) }
         ids = entries.map { |e| e[:language_id].to_i }
@@ -56,6 +70,7 @@ module Api
         current_user.user_languages.where.not(language_id: ids).delete_all
         entries.each do |entry|
           record = current_user.user_languages.find_or_initialize_by(language: Language.find(entry[:language_id]))
+          ensure_language_available!(record)
           record.daily_goal = entry[:daily_goal].presence || record.daily_goal
           record.save!
         end

@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { useI18n } from "../i18n/I18nProvider";
+import { useConfig } from "../hooks/useConfig";
 import { useLanguages } from "../hooks/useLanguages";
 import AuthShell from "./AuthShell";
 import styles from "./Auth.module.scss";
@@ -11,6 +12,8 @@ export default function SignupPage() {
     const { t, locale } = useI18n();
     const navigate = useNavigate();
     const { data: languages = [] } = useLanguages();
+    const { data: config } = useConfig();
+    const closed = config?.signups_enabled === false;
     const [form, setForm] = useState({ email: "", password: "", name: "", native_language: locale as string, study_language_id: "" });
     const [error, setError] = useState<string | null>(null);
     const [busy, setBusy] = useState(false);
@@ -42,7 +45,8 @@ export default function SignupPage() {
     return (
         <AuthShell>
             <h2>{t("auth.signup.title")}</h2>
-            <form onSubmit={handleSubmit}>
+            {closed && <div className="alert info">{t("auth.signups_closed")}</div>}
+            <form onSubmit={handleSubmit} hidden={closed}>
                 {error && <div className="alert error">{error}</div>}
                 <label className="field">
                     <span>{t("auth.name")}</span>

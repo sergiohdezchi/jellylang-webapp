@@ -21,6 +21,10 @@ class User < ApplicationRecord
   validates :ui_language, inclusion: { in: UI_LANGUAGES }
   validates :native_language, presence: true
 
+  scope :admins, -> { where(admin: true, disabled_at: nil) }
+
+  def disabled? = disabled_at.present?
+
   def daily_goal_for(language)
     user_languages.find_by(language: language)&.daily_goal || UserLanguage::DEFAULT_GOAL
   end
@@ -32,6 +36,7 @@ class User < ApplicationRecord
       name: name,
       ui_language: ui_language,
       native_language: native_language,
+      admin: admin,
       current_language: current_language,
       languages: user_languages.includes(:language).map(&:as_json)
     }

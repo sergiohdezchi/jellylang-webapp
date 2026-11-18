@@ -10,9 +10,19 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_08_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_18_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "app_settings", force: :cascade do |t|
+    t.string "key", null: false
+    t.jsonb "value"
+    t.bigint "updated_by_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["key"], name: "index_app_settings_on_key", unique: true
+    t.index ["updated_by_id"], name: "index_app_settings_on_updated_by_id"
+  end
 
   create_table "courses", force: :cascade do |t|
     t.bigint "user_id", null: false
@@ -45,6 +55,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_08_000001) do
     t.string "name", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "enabled", default: true, null: false
     t.index ["code"], name: "index_languages_on_code", unique: true
   end
 
@@ -151,6 +162,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_08_000001) do
     t.bigint "current_language_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "admin", default: false, null: false
+    t.datetime "disabled_at"
     t.index "lower((email)::text)", name: "index_users_on_lower_email", unique: true
     t.index ["current_language_id"], name: "index_users_on_current_language_id"
   end
@@ -164,6 +177,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_08_000001) do
     t.index ["language_id", "term"], name: "index_words_on_language_id_and_term", unique: true
   end
 
+  add_foreign_key "app_settings", "users", column: "updated_by_id", on_delete: :nullify
   add_foreign_key "courses", "languages"
   add_foreign_key "courses", "users", on_delete: :cascade
   add_foreign_key "daily_stats", "languages"

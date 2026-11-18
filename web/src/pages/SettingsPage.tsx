@@ -29,7 +29,9 @@ export default function SettingsPage() {
     if (!user) return null;
 
     const available = languages.filter((l) => !rows.some((r) => r.language_id === l.id));
-    const languageName = (id: number) => languages.find((l) => l.id === id)?.name ?? "";
+    // Un idioma desactivado ya no viene en /languages, pero quien lo estudia debe seguir viendo su nombre
+    const languageName = (id: number) =>
+        languages.find((l) => l.id === id)?.name ?? user.languages.find((l) => l.language.id === id)?.language.name ?? "";
 
     async function handleSubmit(event: FormEvent) {
         event.preventDefault();

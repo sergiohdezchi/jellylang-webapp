@@ -19,7 +19,7 @@ RSpec.describe "Flag YTDLP_ENABLED", type: :request do
   it "se anuncia en /config sin necesidad de sesión" do
     with_ytdlp(false)
     get "/api/v1/config"
-    expect(json).to eq("ytdlp_enabled" => false, "import_sources" => ["youtube"])
+    expect(json).to include("ytdlp_enabled" => false, "import_sources" => ["youtube"])
 
     with_ytdlp(true)
     get "/api/v1/config"

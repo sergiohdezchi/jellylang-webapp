@@ -69,6 +69,16 @@ export default function Layout() {
                                 ))}
                             </select>
                         )}
+                        {user?.admin && (
+                            <NavLink
+                                to="/admin"
+                                className={({ isActive }) => `btn ghost icon ${isActive ? "active" : ""}`}
+                                title={t("nav.admin")}
+                                aria-label={t("nav.admin")}
+                            >
+                                <Icon name="shield" />
+                            </NavLink>
+                        )}
                         <NavLink to="/settings" className="btn ghost icon" title={t("nav.settings")} aria-label={t("nav.settings")}>
                             <Icon name="settings" />
                         </NavLink>

@@ -27,6 +27,7 @@ class ApplicationController < ActionController::API
     token = request.authorization.to_s[/\ABearer (.+)\z/, 1]
     payload = token && JsonWebToken.decode(token)
     @current_user = payload && User.find_by(id: payload["sub"])
+    @current_user = nil if @current_user&.disabled? # una cuenta desactivada pierde sus sesiones al momento
     render_error(I18n.t("errors.unauthorized"), :unauthorized) unless @current_user
   end
 

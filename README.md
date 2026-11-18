@@ -21,7 +21,7 @@ Al arrancar, la API crea la base de datos, ejecuta las migraciones y carga los d
 | API | http://localhost:3000/api/v1 |
 | Panel de Sidekiq (solo desarrollo) | http://localhost:3000/sidekiq |
 
-Usuario de demostración: **demo@linguaq.dev / password123** (con una lección de ejemplo en inglés).
+Usuario de demostración: **demo@linguaq.dev / password123** (administrador, con una lección de ejemplo en inglés).
 
 ---
 
@@ -106,6 +106,25 @@ Usuario de demostración: **demo@linguaq.dev / password123** (con una lección d
 - Palabras conocidas, LingQs, racha diaria, palabras leídas, horas de escucha y repasos pendientes.
 - Meta diaria de LingQs nuevos por idioma y gráfico de los últimos 7 días.
 - Las estadísticas usan la zona horaria del navegador (cabecera `X-Timezone`).
+
+### Panel de administración
+- En `/admin` (icono de escudo en la cabecera, solo para administradores):
+  - **Resumen:** usuarios, actividad de la semana, lecciones, LingQs e importaciones fallidas recientes (útil para ver si yt-dlp dejó de funcionar).
+  - **Ajustes:** activar o desactivar la importación con yt-dlp y el registro abierto. Se aplican al momento en la API y en el worker.
+  - **Usuarios:** buscar, crear cuentas (también con el registro cerrado), dar o quitar el rol de administrador, desactivar (corta sus sesiones al momento), cambiar la contraseña y borrar con todos sus datos.
+  - **Idiomas:** añadir (código ISO 639 de 2-3 letras), renombrar, desactivar (deja de ofrecerse, pero quien ya lo estudia lo conserva) y borrar si nadie lo usa.
+- Nadie puede quitarse el rol de administrador, desactivarse ni borrarse a sí mismo, así que siempre queda al menos un administrador.
+
+**Ajustes: panel, entorno y valor por defecto.** Cada ajuste usa el valor guardado en el panel; si no hay, el de su variable de entorno (`YTDLP_ENABLED`, `SIGNUPS_ENABLED`); y si tampoco, el valor por defecto (activado). El panel indica de dónde sale el valor y permite volver al de la variable de entorno.
+
+**Primer administrador.** El usuario demo ya lo es. En una instalación nueva, regístrate y ejecuta:
+
+```bash
+docker compose exec api bin/rails "admin:grant[tu@email.com]"
+docker compose exec api bin/rails admin:list      # ver administradores
+```
+
+Con la base de datos vacía el registro siempre está abierto, para poder crear la primera cuenta.
 
 ### Cuentas e idiomas
 - Registro e inicio de sesión con email.
@@ -198,8 +217,10 @@ El backend y el frontend usan la misma expresión regular para separar palabras 
 ## Modelo de datos
 
 ```
-languages(code, name)
-users(email, password_digest, name, ui_language, native_language, current_language_id)
+languages(code, name, enabled)
+app_settings(key, value, updated_by_id)          -- ajustes del panel de administración
+users(email, password_digest, name, ui_language, native_language, current_language_id,
+      admin, disabled_at)
 user_languages(user_id, language_id, daily_goal)
 
 courses(user_id, language_id, title, description)
@@ -241,7 +262,11 @@ Todas las rutas cuelgan de `/api/v1` y, salvo registro, login e idiomas, requier
 | POST | `/lessons` | Crear lección: `source_type` = `text` (`content`), `url` (`url`) o `file` (multipart) |
 | POST | `/lessons/youtube` | Importar desde YouTube con yt-dlp (respuesta 202; `403` si `YTDLP_ENABLED=false`) |
 | POST | `/imports` | Crear o actualizar una lección desde un cliente externo (la extensión): `source`, `language_id`, `video`, `track` con `format` (`json3`, `vtt` o `srt`) y `content` |
-| GET | `/config` | Capacidades del servidor (`ytdlp_enabled`, `import_sources`); no requiere sesión |
+| GET | `/config` | Capacidades del servidor (`ytdlp_enabled`, `signups_enabled`, `import_sources`); no requiere sesión |
+| GET | `/admin/overview` | Resumen del sistema (solo administradores, como todo `/admin`) |
+| GET, PATCH, DELETE | `/admin/settings[/:key]` | Ver, cambiar o restablecer ajustes (`ytdlp_enabled`, `signups_enabled`) |
+| GET, POST, PATCH, DELETE | `/admin/users[/:id]` | Usuarios: listar (`q`, `role`, `status`), crear, cambiar `admin`/`disabled`/`password`/`name`, borrar |
+| GET, POST, PATCH, DELETE | `/admin/languages[/:id]` | Idiomas: listar con su uso, crear, renombrar/activar, borrar si no se usa |
 | GET | `/lessons/:id` | Lección con segmentos, vocabulario del usuario y frases |
 | PATCH | `/lessons/:id` | Título, curso, nivel, `progress_page`, `completed` |
 | DELETE | `/lessons/:id` | Eliminar lección |
@@ -418,6 +443,7 @@ Genera secretos con `openssl rand -hex 64`. No subas `.env` al repositorio (ya e
 - [ ] Respaldo con Whisper para videos sin subtítulos
 - [ ] Soporte para chino, japonés y coreano (requiere segmentación de palabras)
 - [x] Extensión de navegador para importar videos de YouTube (vía oficial) y flag para apagar yt-dlp
+- [x] Panel de administración: ajustes, usuarios e idiomas
 - [ ] Importar desde Netflix con la extensión
 - [ ] Extensión: importar páginas web y artículos
 - [ ] PWA y modo offline
