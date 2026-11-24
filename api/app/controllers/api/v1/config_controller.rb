@@ -7,7 +7,7 @@ module Api
       def show
         render json: {
           ytdlp_enabled: Features.ytdlp_enabled?,
-          signups_enabled: Features.signups_enabled?,
+          signups_enabled: Features.signups_available?,
           import_sources: Imports::Video::SOURCES
         }
       end

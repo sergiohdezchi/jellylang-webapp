@@ -23,6 +23,7 @@ module Api
         def create
           user = User.new(params.permit(:email, :password, :name))
           user.admin = ActiveModel::Type::Boolean.new.cast(params[:admin]) || false
+          user.email_verified_at = Time.current # lo da de alta un administrador
 
           User.transaction do
             user.save!
@@ -95,6 +96,7 @@ module Api
             name: user.name,
             admin: user.admin,
             disabled: user.disabled?,
+            email_verified: user.email_verified?,
             current_language: user.current_language&.code,
             lessons_count: user.lessons_count.to_i,
             lingqs_count: user.lingqs_count.to_i,

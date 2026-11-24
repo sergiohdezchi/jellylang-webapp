@@ -8,15 +8,20 @@ RSpec.describe "Cookie de sesión para la extensión", type: :request do
   end
 
   it "se fija al iniciar sesión, como HttpOnly y SameSite=Lax" do
-    post "/api/v1/auth/login", params: { email: user.email, password: "password123" }
+    post "/api/v1/auth/login", params: { email: user.email, password: "Medusa-Azul-2026" }
 
     expect(session_cookie).to include("jellylang_token=#{json['token']}")
     expect(session_cookie).to match(/httponly/i)
     expect(session_cookie).to match(/samesite=lax/i)
   end
 
-  it "se fija al registrarse" do
-    post "/api/v1/auth/signup", params: { email: "nueva@example.com", password: "password123" }
+  it "se fija al verificar el email, no al registrarse" do
+    post "/api/v1/auth/signup", params: { email: "nueva@example.com", password: "Medusa-Azul-2026" }
+    expect(session_cookie).to be_nil
+
+    SendVerificationCodeJob.drain
+    code = ActionMailer::Base.deliveries.last.text_part.body.to_s[/\b\d{6}\b/]
+    post "/api/v1/auth/verify_email", params: { email: "nueva@example.com", password: "Medusa-Azul-2026", code: code }
     expect(session_cookie).to include("jellylang_token=#{json['token']}")
   end
 

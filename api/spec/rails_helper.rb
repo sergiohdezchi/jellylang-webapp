@@ -18,7 +18,7 @@ end
 module AuthHelpers
   def create_user(email: "ana@example.com", language_code: "en")
     language = Language.find_or_create_by!(code: language_code) { |l| l.name = language_code }
-    user = User.create!(email: email, password: "password123", current_language: language)
+    user = User.create!(email: email, password: "Medusa-Azul-2026", current_language: language, email_verified_at: Time.current)
     user.user_languages.create!(language: language)
     user
   end

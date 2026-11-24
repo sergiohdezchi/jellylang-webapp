@@ -1,0 +1,53 @@
+<% font = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" %>
+<tr>
+  <td class="px" style="padding:16px 40px 0;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#6540f7"
+           style="background-color:#6540f7;background-image:linear-gradient(135deg,#3b82f6 0%,#6540f7 55%,#b765f5 100%);border-radius:14px;">
+      <tr>
+        <td style="padding:28px 28px;font-family:<%= font %>;color:#ffffff;" valign="middle">
+          <h1 style="margin:0 0 8px;font-size:28px;line-height:1.2;font-weight:800;color:#ffffff;">
+            <%= @name ? t("mailers.welcome.greeting_name", name: @name) : t("mailers.welcome.greeting") %>
+          </h1>
+          <p style="margin:0;font-size:15px;line-height:1.5;color:#ffffff;opacity:0.92;"><%= t("mailers.tagline") %></p>
+        </td>
+        <td class="hero-mark" width="96" align="right" valign="bottom" style="padding:16px 20px 0 0;">
+          <img src="<%= app_url %>/mark.png" width="80" alt="" style="display:block;width:80px;height:auto;border:0;">
+        </td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+  <td class="px" style="padding:24px 40px 8px;font-family:<%= font %>;font-size:16px;line-height:1.65;color:#3b4570;">
+    <p style="margin:0;"><%= @language ? t("mailers.welcome.intro_language", language: @language) : t("mailers.welcome.intro") %></p>
+  </td>
+</tr>
+<tr>
+  <td class="px" style="padding:16px 40px 8px;font-family:<%= font %>;">
+    <p style="margin:0 0 14px;font-size:13px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#5b34ea;"><%= t("mailers.welcome.steps_title") %></p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+      <% t("mailers.welcome.steps").each_with_index do |step, index| %>
+        <tr>
+          <td width="44" valign="top" style="padding:0 0 16px;">
+            <div style="width:32px;height:32px;line-height:32px;border-radius:16px;background-color:#ebe7fe;color:#4623c8;font-weight:800;font-size:15px;text-align:center;"><%= index + 1 %></div>
+          </td>
+          <td valign="top" style="padding:4px 0 16px;font-size:15px;line-height:1.5;color:#3b4570;">
+            <strong style="color:#0c1944;"><%= step[:title] %></strong><br><%= step[:text] %>
+          </td>
+        </tr>
+      <% end %>
+    </table>
+  </td>
+</tr>
+<tr>
+  <td class="px" align="left" style="padding:8px 40px 28px;font-family:<%= font %>;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+      <tr>
+        <td bgcolor="#5b34ea" style="border-radius:10px;background-color:#5b34ea;">
+          <a href="<%= app_url %>" style="display:inline-block;padding:14px 28px;font-size:16px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:10px;"><%= t("mailers.welcome.cta") %> →</a>
+        </td>
+      </tr>
+    </table>
+    <p style="margin:20px 0 0;font-size:13px;color:#5a6388;"><%= t("mailers.welcome.account", email: @user.email) %></p>
+  </td>
+</tr>

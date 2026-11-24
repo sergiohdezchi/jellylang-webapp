@@ -9,6 +9,10 @@ export class ApiError extends Error {
         message: string,
         public status: number,
         public details?: Record<string, string[]>,
+        /** Código de error estable de la API (p. ej. "email_not_verified") */
+        public code?: string,
+        /** Respuesta completa, para los datos extra de algunos errores */
+        public data: Record<string, unknown> = {},
     ) {
         super(message);
     }
@@ -76,7 +80,7 @@ async function request(path: string, { method = "GET", body, query }: RequestOpt
     if (!response.ok) {
         const data = await response.json().catch(() => ({}));
         if (response.status === 401 && token) unauthorizedHandler?.();
-        throw new ApiError(data.error ?? response.statusText, response.status, data.details);
+        throw new ApiError(data.error ?? response.statusText, response.status, data.details, data.code, data);
     }
 
     return response;

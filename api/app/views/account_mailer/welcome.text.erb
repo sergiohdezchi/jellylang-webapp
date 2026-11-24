@@ -1,0 +1,12 @@
+<%= @name ? t("mailers.welcome.greeting_name", name: @name) : t("mailers.welcome.greeting") %>
+
+<%= @language ? t("mailers.welcome.intro_language", language: @language) : t("mailers.welcome.intro") %>
+
+<%= t("mailers.welcome.steps_title") %>:
+<% t("mailers.welcome.steps").each_with_index do |step, index| %>
+<%= index + 1 %>. <%= step[:title] %>: <%= step[:text] %>
+<% end %>
+
+<%= t("mailers.welcome.cta") %>: <%= app_url %>
+
+<%= t("mailers.welcome.account", email: @user.email) %>

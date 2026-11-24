@@ -5,7 +5,7 @@ module JsonWebToken
   module_function
 
   def encode(user_id)
-    JWT.encode({ sub: user_id, exp: TTL.from_now.to_i }, secret, ALGORITHM)
+    JWT.encode({ sub: user_id, iat: Time.current.to_i, exp: TTL.from_now.to_i }, secret, ALGORITHM)
   end
 
   def decode(token)

@@ -28,6 +28,8 @@ class ApplicationController < ActionController::API
     payload = token && JsonWebToken.decode(token)
     @current_user = payload && User.find_by(id: payload["sub"])
     @current_user = nil if @current_user&.disabled? # una cuenta desactivada pierde sus sesiones al momento
+    # Restablecer la contraseña cierra las sesiones anteriores
+    @current_user = nil if @current_user&.password_changed_at && payload["iat"].to_i < @current_user.password_changed_at.to_i
     render_error(I18n.t("errors.unauthorized"), :unauthorized) unless @current_user
   end
 

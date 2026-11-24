@@ -1,0 +1,8 @@
+<%= t("mailers.verification.title") %>
+
+<%= t("mailers.verification.intro") %>
+
+    <%= @code %>
+
+<%= t("mailers.verification.expires", minutes: @minutes) %>
+<%= t("mailers.verification.ignore") %>

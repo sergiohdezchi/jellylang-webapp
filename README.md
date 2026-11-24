@@ -22,13 +22,17 @@ Al arrancar, la API crea la base de datos, ejecuta las migraciones y carga los d
 | Aplicación | http://localhost:5173 |
 | API | http://localhost:3000/api/v1 |
 | Panel de Sidekiq (solo desarrollo) | http://localhost:3000/sidekiq |
+| Correos enviados — Mailpit (solo desarrollo) | http://localhost:8025 |
+| Vista previa de las plantillas de correo (solo desarrollo) | http://localhost:3000/rails/mailers |
 
 Usuarios iniciales (solo en desarrollo; ver [Usuarios iniciales (seeds)](#usuarios-iniciales-seeds)):
 
 | Usuario | Email | Contraseña |
 |---------|-------|------------|
-| Administrador | admin@jellylang.com | password123 |
-| Ejemplo (español → inglés, con una lección) | example@jellylang.com | password123 |
+| Administrador | admin@jellylang.com | Medusa-Azul-2026 |
+| Ejemplo (español → inglés, con una lección) | example@jellylang.com | Medusa-Azul-2026 |
+
+Si tu base de datos se sembró antes con `password123`, esas cuentas conservan su contraseña (los seeds nunca la cambian).
 
 ---
 
@@ -142,21 +146,59 @@ docker compose exec api bin/rails db:seed
 
 - Es **idempotente**: solo crea lo que falta y nunca cambia la contraseña de un usuario que ya existe.
 - Los datos se configuran con variables de entorno: `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `EXAMPLE_EMAIL` y `EXAMPLE_PASSWORD`.
-- En desarrollo y pruebas, las contraseñas por defecto son `password123` (`admin@jellylang.com` y `example@jellylang.com`).
+- En desarrollo y pruebas, la contraseña por defecto es `Medusa-Azul-2026` (`admin@jellylang.com` y `example@jellylang.com`). Las cuentas de los seeds se crean con el email ya verificado.
+- `ADMIN_PASSWORD` y `EXAMPLE_PASSWORD` deben cumplir la [política de contraseñas](#contraseñas); si no, los seeds fallan.
 - **En producción no hay contraseñas por defecto.** Si no defines `ADMIN_PASSWORD` o `EXAMPLE_PASSWORD`, se genera una aleatoria y se muestra una sola vez en la salida del comando. Guárdala, o define las variables antes de ejecutar los seeds.
 - Si no quieres el usuario de ejemplo en producción, bórralo desde el panel de administración después del primer arranque.
 
 Con la base de datos vacía el registro siempre está abierto, para poder crear la primera cuenta.
 
 ### Cuentas e idiomas
-- Registro e inicio de sesión con email.
+- Registro con email confirmado por un código de 6 dígitos (ver [Registro con código](#registro-con-código-por-correo)).
+- Contraseñas robustas, con los requisitos a la vista mientras se escriben (ver [Contraseñas](#contraseñas)).
 - Varios idiomas de estudio por usuario, cada uno con su meta diaria.
 - Idiomas incluidos: inglés, español, francés, alemán, italiano, portugués, neerlandés y ruso.
 - Interfaz en español e inglés.
+- Correos con diseño (código de verificación y bienvenida) en el idioma de la interfaz, enviados con Zoho (ver [Correo con Zoho](#correo-con-zoho)).
 
 ---
 
 ## Cómo funciona
+
+### Registro con código por correo
+
+1. `POST /auth/signup` crea la cuenta **sin verificar** y responde `202` con `{ verification_required, email, resend_in }` (sin token).
+2. El worker genera un código de 6 dígitos y lo envía por correo. En la base de datos solo se guarda su HMAC, nunca el código.
+3. La web muestra la pantalla «Revisa tu correo». `POST /auth/verify_email` con email, **contraseña** y código marca el email como verificado, devuelve el token y envía el correo de bienvenida.
+
+Reglas:
+
+- El código caduca a los **15 minutos** y admite **5 intentos**. Al agotarlos, la cuenta queda **bloqueada 15 minutos** (`429`, `code: "locked"`, `retry_in` en segundos): ni el código correcto ni pedir otro sirven hasta que pase; la web muestra la cuenta atrás. Entre envíos hay que esperar **60 segundos** (`POST /auth/resend_code`).
+- Para verificar también se pide la contraseña. Así, quien solo tenga acceso al correo no puede quedarse con una cuenta registrada por otra persona, y viceversa.
+- Si alguien inicia sesión sin haber verificado, recibe `403` con `code: "email_not_verified"`. Se le envía un código nuevo si no tenía uno vigente, y la web le muestra la pantalla del código.
+- Un registro abandonado no bloquea el email: si se repite el registro con ese email, se sustituyen los datos y se envía otro código.
+- Además, la API limita por IP los intentos de login, registro, verificación y reenvío (`rate_limit` de Rails, contado en Redis); al superarlos responde `429`.
+- Las cuentas creadas por un administrador o por los seeds, y las que ya existían al añadir esta función, se dan por verificadas.
+- **No hay registros sin correo:** si el servidor no puede enviar correos (en producción, sin `SMTP_USERNAME`/`SMTP_PASSWORD`), `POST /auth/signup` responde `503 mail_unavailable` y `GET /config` devuelve `signups_enabled: false`, así que la web muestra el registro como cerrado. Los administradores siguen pudiendo crear cuentas desde el panel.
+
+### Recuperar la contraseña
+
+1. En el login, «¿Olvidaste tu contraseña?» (`/forgot-password`) pide el email. `POST /auth/forgot_password` responde siempre `202`, exista o no la cuenta, para no revelar qué emails están registrados.
+2. Si la cuenta existe y está activa, llega un código de 6 dígitos con las mismas reglas que el de registro (15 minutos, 5 intentos, bloqueo de 15 minutos, 60 s entre envíos).
+3. `POST /auth/reset_password` con `email`, `code` y `password` cambia la contraseña e inicia sesión. Si la contraseña nueva no cumple las reglas, se rechaza **sin gastar el código**.
+4. Cambiar la contraseña **cierra todas las sesiones anteriores** (los tokens llevan `iat` y se rechazan los emitidos antes de `password_changed_at`). Si el email estaba sin verificar, queda verificado.
+
+### Contraseñas
+
+Se validan en la API (`api/app/services/password_policy.rb`) y la web muestra las mismas reglas mientras se escribe (`web/src/lib/passwordPolicy.ts`). Si cambias una, cambia la otra:
+
+- Al menos **10 caracteres** (y como mucho 72 bytes, el límite de bcrypt).
+- Al menos una **minúscula**, una **mayúscula** y un **número**. Los símbolos no son obligatorios, pero suben la fuerza.
+- No puede repetir el mismo carácter 4 veces seguidas.
+- No puede contener palabras o secuencias muy comunes (`password`, `qwerty`, `123456`, `jellylang`…).
+- No puede contener la parte del email antes de la `@`.
+
+Se aplican al registrarse, al crear un usuario desde el panel y al cambiar una contraseña. Las cuentas que ya existían siguen entrando con su contraseña actual. Las contraseñas se guardan con bcrypt (`has_secure_password`), y el login responde con un mensaje genérico que no revela si el email existe.
 
 ### Importación con la extensión del navegador
 
@@ -242,7 +284,9 @@ El backend y el frontend usan la misma expresión regular para separar palabras 
 languages(code, name, enabled)
 app_settings(key, value, updated_by_id)          -- ajustes del panel de administración
 users(email, password_digest, name, ui_language, native_language, current_language_id,
-      admin, disabled_at)
+      admin, disabled_at, email_verified_at, verification_code_digest,
+      verification_code_sent_at, verification_attempts, verification_locked_until,
+      reset_code_digest, reset_code_sent_at, reset_attempts, reset_locked_until, password_changed_at)
 user_languages(user_id, language_id, daily_goal)
 
 courses(user_id, language_id, title, description)
@@ -274,8 +318,12 @@ Todas las rutas cuelgan de `/api/v1` y, salvo registro, login e idiomas, requier
 
 | Método | Ruta | Descripción |
 |--------|------|-------------|
-| POST | `/auth/signup` | Registro (devuelve JWT) |
-| POST | `/auth/login` | Login (devuelve JWT) |
+| POST | `/auth/signup` | Registro. Con correo configurado responde `202` y envía un código; si no, devuelve el JWT |
+| POST | `/auth/verify_email` | `email`, `password` y `code`: confirma el email y devuelve el JWT |
+| POST | `/auth/resend_code` | `email` y `password`: envía otro código (máximo uno por minuto) |
+| POST | `/auth/forgot_password` | `email`: envía un código para cambiar la contraseña (responde igual exista o no la cuenta) |
+| POST | `/auth/reset_password` | `email`, `code` y `password`: cambia la contraseña e inicia sesión |
+| POST | `/auth/login` | Login (devuelve JWT; `403 email_not_verified` si falta confirmar el email) |
 | GET | `/auth/me` | Usuario actual (renueva también la cookie de sesión de la extensión) |
 | DELETE | `/auth/session` | Borra la cookie de sesión que usa la extensión (al cerrar sesión en la web) |
 | PATCH | `/auth/me` | Perfil, idiomas de estudio, metas e idioma actual |
@@ -392,6 +440,16 @@ Notas:
 - Los contenedores usan tu UID/GID (por defecto 1000) para que los archivos generados no queden como `root`. Si tu usuario tiene otro UID, exporta `UID` y `GID` antes de construir.
 - El frontend llama a `/api/v1` y Vite lo redirige al contenedor `api`, así que en desarrollo no hay CORS.
 
+### Correo en desarrollo
+
+En Docker, todo el correo va a **Mailpit**: no sale nada a internet y cualquier dirección sirve para registrarse.
+
+- **Bandeja:** http://localhost:8025. Ahí llegan el código de verificación y la bienvenida. La pantalla del código de la web enlaza a Mailpit (solo en desarrollo).
+- **Vista previa de las plantillas sin enviar nada:** http://localhost:3000/rails/mailers (añade `?locale=en` para verlas en inglés). Las previsualizaciones están en `api/spec/mailers/previews/`.
+- **Probar el registro completo:** abre http://localhost:5173/signup, regístrate con cualquier email, copia el código desde Mailpit y entra.
+- Los correos los envía el worker de Sidekiq: si no llegan, mira `docker compose logs -f worker`.
+- **Probar con Zoho de verdad desde local:** define `SMTP_ADDRESS`, `SMTP_PORT`, `SMTP_USERNAME` y `SMTP_PASSWORD` en `.env` y ejecuta `docker compose up -d api worker`.
+
 ---
 
 ## Despliegue en producción
@@ -456,6 +514,33 @@ Notas:
 - **Extensión:** por defecto apunta a `localhost`. En el icono de ajustes del popup, pon la API `https://jellylang.com` y la web `https://jellylang.com`.
 - Los volúmenes `postgres_data` y `redis_data` guardan los datos; `docker compose down` los conserva, `down -v` los borra.
 
+### Correo con Zoho
+
+Jellylang envía tres correos: el **código de verificación** al registrarse, la **bienvenida** al confirmar el email y el **código para cambiar la contraseña**. Salen del worker de Sidekiq (cola `mailers`, con reintentos), así que un fallo del servidor de correo nunca rompe una petición. Las cuentas creadas por un administrador o por los seeds no reciben ninguno.
+
+1. En Zoho Mail, crea (o usa) la cuenta desde la que se enviará, por ejemplo `hola@jellylang.com`. El plan gratuito de Zoho no ofrece SMTP: hace falta un plan de pago.
+2. Si la cuenta tiene verificación en dos pasos, crea una **contraseña de aplicación** (Zoho > Mi cuenta > Seguridad > Contraseñas de aplicación). Si no, vale la contraseña de la cuenta.
+3. Define en `.env` (en el servidor):
+
+   ```env
+   SMTP_ADDRESS=smtp.zoho.com     # el de la región de tu cuenta: smtp.zoho.eu, smtp.zoho.in, smtp.zoho.com.au, smtp.zoho.jp...
+   SMTP_PORT=587                  # 587 = STARTTLS, 465 = SSL
+   SMTP_USERNAME=hola@jellylang.com
+   SMTP_PASSWORD=la-contraseña-de-aplicación
+   MAIL_FROM=                     # vacío = SMTP_USERNAME. Zoho solo deja enviar desde la cuenta o sus alias
+   APP_URL=https://jellylang.com  # enlaces y logo del correo (se carga de APP_URL/logo.png)
+   ```
+
+4. Reinicia: `docker compose -f docker-compose.prod.yml up -d` (api y worker).
+5. Para que no caigan en spam, configura en el DNS del dominio los registros **SPF**, **DKIM** y **DMARC** que te indica Zoho (Zoho > Panel de administración > Dominios > Correo).
+
+Notas:
+
+- Sin `SMTP_USERNAME` y `SMTP_PASSWORD`, en producción no se envía nada (se deja un aviso en el log), **el registro y la recuperación de contraseña quedan desactivados**.
+- Probar el envío: `docker compose -f docker-compose.prod.yml exec jellylang-api bin/rails runner 'AccountMailer.with(user: User.find_by!(email: "tu@email.com")).welcome.deliver_now'`.
+- Si un correo falla (credenciales, región equivocada…), el error aparece en `docker compose -f docker-compose.prod.yml logs jellylang-worker`.
+- Las plantillas están en `api/app/views/account_mailer/` (con el diseño común en `api/app/views/layouts/mailer.html.erb`) y los textos en `api/config/locales/` (`mailers.*`).
+
 ---
 
 ## Variables de entorno
@@ -480,9 +565,19 @@ DEEPL_API_KEY=
 # false = solo se importa con la extensión del navegador (carpeta extension/) o subiendo SRT/VTT.
 YTDLP_ENABLED=true
 
+# Correo (código de verificación y bienvenida). En Docker va a Mailpit: abre http://localhost:8025 para verlo.
+# Para probar el envío real con Zoho desde local, descomenta y completa (ver README, "Correo con Zoho"):
+# SMTP_ADDRESS=smtp.zoho.com
+# SMTP_PORT=587
+# SMTP_USERNAME=hola@jellylang.com
+# SMTP_PASSWORD=
+# MAIL_FROM="Jellylang <hola@jellylang.com>"   # por defecto, SMTP_USERNAME; Zoho solo permite la cuenta o sus alias
+# APP_URL=http://localhost:5173                 # enlaces e imágenes del correo
+
 # Puertos publicados en el host
 API_PORT=3000
 WEB_PORT=5173
+MAILPIT_PORT=8025
 ```
 
 Genera secretos con `openssl rand -hex 64`. No subas `.env` al repositorio (ya está en `.gitignore`).

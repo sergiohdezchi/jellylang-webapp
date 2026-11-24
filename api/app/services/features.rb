@@ -12,4 +12,9 @@ module Features
   def signups_enabled?
     Settings.get("signups_enabled") || !User.exists?
   end
+
+  # Registrarse exige confirmar el email con un código: sin correo configurado no se puede crear cuentas nuevas.
+  def signups_available?
+    signups_enabled? && Mailing.enabled?
+  end
 end

@@ -5,6 +5,7 @@ import { useI18n } from "./i18n/I18nProvider";
 import Layout from "./components/Layout/Layout";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import LibraryPage from "./pages/LibraryPage";
 import ImportPage from "./pages/ImportPage";
 import LessonPage from "./pages/LessonPage";
@@ -46,6 +47,7 @@ export default function App() {
     return (
         <Routes>
             <Route path="/login" element={user ? <Navigate to="/" replace /> : <LoginPage />} />
+            <Route path="/forgot-password" element={user ? <Navigate to="/" replace /> : <ForgotPasswordPage />} />
             <Route path="/signup" element={user ? <Navigate to="/" replace /> : <SignupPage />} />
             <Route
                 element={

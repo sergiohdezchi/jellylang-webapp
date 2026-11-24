@@ -78,7 +78,7 @@ RSpec.describe "Panel de administración", type: :request do
       get "/api/v1/config"
       expect(json["signups_enabled"]).to eq(false)
 
-      post "/api/v1/auth/signup", params: { email: "nuevo@example.com", password: "password123" }
+      post "/api/v1/auth/signup", params: { email: "nuevo@example.com", password: "Medusa-Azul-2026" }
       expect(response).to have_http_status(:forbidden)
       expect(json["code"]).to eq("signups_disabled")
       expect(User.exists?(email: "nuevo@example.com")).to eq(false)
@@ -104,14 +104,14 @@ RSpec.describe "Panel de administración", type: :request do
     it "da de alta usuarios (aunque el registro esté cerrado)" do
       Settings.set("signups_enabled", false)
 
-      post "/api/v1/admin/users", params: { email: "Nuevo@Example.com", password: "password123", name: "Nuevo", study_language_id: english.id }, headers: admin_headers, as: :json
+      post "/api/v1/admin/users", params: { email: "Nuevo@Example.com", password: "Medusa-Azul-2026", name: "Nuevo", study_language_id: english.id }, headers: admin_headers, as: :json
       expect(response).to have_http_status(:created)
       expect(json).to include("email" => "nuevo@example.com", "admin" => false, "current_language" => "en")
 
-      post "/api/v1/auth/login", params: { email: "nuevo@example.com", password: "password123" }
+      post "/api/v1/auth/login", params: { email: "nuevo@example.com", password: "Medusa-Azul-2026" }
       expect(response).to have_http_status(:ok)
 
-      post "/api/v1/admin/users", params: { email: "nuevo@example.com", password: "password123" }, headers: admin_headers, as: :json
+      post "/api/v1/admin/users", params: { email: "nuevo@example.com", password: "Medusa-Azul-2026" }, headers: admin_headers, as: :json
       expect(response).to have_http_status(:unprocessable_entity)
     end
 
@@ -134,7 +134,7 @@ RSpec.describe "Panel de administración", type: :request do
       get "/api/v1/auth/me", headers: member_headers
       expect(response).to have_http_status(:unauthorized)
 
-      post "/api/v1/auth/login", params: { email: "ana@example.com", password: "password123" }
+      post "/api/v1/auth/login", params: { email: "ana@example.com", password: "Medusa-Azul-2026" }
       expect(response).to have_http_status(:forbidden)
       expect(json["code"]).to eq("account_disabled")
 
@@ -144,10 +144,10 @@ RSpec.describe "Panel de administración", type: :request do
     end
 
     it "cambia la contraseña" do
-      patch "/api/v1/admin/users/#{member.id}", params: { password: "nueva-clave-1" }, headers: admin_headers, as: :json
+      patch "/api/v1/admin/users/#{member.id}", params: { password: "Nueva-Clave-2026" }, headers: admin_headers, as: :json
       expect(response).to have_http_status(:ok)
 
-      post "/api/v1/auth/login", params: { email: "ana@example.com", password: "nueva-clave-1" }
+      post "/api/v1/auth/login", params: { email: "ana@example.com", password: "Nueva-Clave-2026" }
       expect(response).to have_http_status(:ok)
 
       patch "/api/v1/admin/users/#{member.id}", params: { password: "corta" }, headers: admin_headers, as: :json

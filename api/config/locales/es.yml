@@ -1,4 +1,9 @@
 es:
+  support:
+    array:
+      words_connector: ", "
+      two_words_connector: " y "
+      last_word_connector: " y "
   errors:
     not_found: "No encontrado"
     unauthorized: "Inicia sesión para continuar"
@@ -6,6 +11,24 @@ es:
     need_language: "Elige al menos un idioma de estudio"
     signups_disabled: "Los registros están cerrados. Pide a un administrador que te cree una cuenta."
     account_disabled: "Tu cuenta está desactivada. Contacta con un administrador."
+    email_not_verified: "Confirma tu email para terminar el registro. Te enviamos un código."
+    rate_limited:
+      one: "Demasiados intentos. Espera 1 minuto y vuelve a probar."
+      other: "Demasiados intentos. Espera %{count} minutos y vuelve a probar."
+    mail_unavailable: "El registro no está disponible ahora mismo porque el servidor no puede enviar correos. Inténtalo más tarde."
+    verification:
+      locked:
+        one: "Demasiados intentos. Por seguridad, espera 1 minuto antes de volver a intentarlo."
+        other: "Demasiados intentos. Por seguridad, espera %{count} minutos antes de volver a intentarlo."
+      invalid_generic: "El código no es válido o caducó. Pide uno nuevo."
+      invalid:
+        one: "Código incorrecto. Te queda 1 intento."
+        other: "Código incorrecto. Te quedan %{count} intentos."
+      expired: "El código caducó. Pide uno nuevo."
+      too_many_attempts: "Demasiados intentos con este código. Pide uno nuevo."
+      wait:
+        one: "Espera 1 segundo para pedir otro código."
+        other: "Espera %{count} segundos para pedir otro código."
     language_disabled: "El idioma %{language} no está disponible."
     invalid_status: "Estado de palabra no válido"
     invalid_rating: "Calificación no válida"
@@ -45,6 +68,13 @@ es:
       unsupported_file: "Tipo de archivo no soportado: %{extension}. Usa TXT, SRT o VTT."
     format: "%{attribute} %{message}"
     messages:
+      password_too_short: "debe tener al menos 10 caracteres"
+      password_needs_lowercase: "debe incluir una letra minúscula"
+      password_needs_uppercase: "debe incluir una letra mayúscula"
+      password_needs_digit: "debe incluir un número"
+      password_repeated: "no puede repetir el mismo carácter 4 veces seguidas"
+      password_too_common: "es demasiado común o fácil de adivinar"
+      password_contains_email: "no puede contener tu email"
       blank: "no puede estar vacío"
       taken: "ya está en uso"
       invalid: "no es válido"
@@ -70,3 +100,47 @@ es:
         title: "El título"
       user_language:
         daily_goal: "La meta diaria"
+  mailers:
+    tagline: "Aprende idiomas leyendo y escuchando contenido real"
+    footer_signup: "Recibes este correo porque se usó esta dirección para crear una cuenta en Jellylang."
+    verification:
+      subject: "%{code} es tu código de Jellylang"
+      preheader: "Introduce este código para terminar tu registro. Caduca en %{minutes} minutos."
+      title: "Confirma tu email"
+      intro: "Introduce este código en Jellylang para terminar de crear tu cuenta:"
+      expires: "El código caduca en %{minutes} minutos y solo sirve una vez."
+      ignore: "¿No fuiste tú? Ignora este correo: sin el código nadie puede usar tu dirección."
+    password_reset:
+      subject: "%{code} es tu código para cambiar la contraseña"
+      preheader: "Introduce este código para elegir una contraseña nueva. Caduca en %{minutes} minutos."
+      title: "Cambia tu contraseña"
+      intro: "Recibimos una solicitud para cambiar la contraseña de tu cuenta de Jellylang. Introduce este código para elegir una nueva:"
+      expires: "El código caduca en %{minutes} minutos y solo sirve una vez."
+      ignore: "¿No lo pediste? Ignora este correo: tu contraseña no cambiará."
+    welcome:
+      subject: "¡Te damos la bienvenida a Jellylang! 🪼"
+      preheader: "Tu cuenta está lista. Así empiezas a aprender en tres pasos."
+      greeting: "¡Te damos la bienvenida!"
+      greeting_name: "¡Hola, %{name}!"
+      intro: "Tu cuenta ya está lista. En Jellylang aprendes leyendo y escuchando contenido que te interesa: tú eliges qué leer y las palabras nuevas se convierten en tu vocabulario."
+      intro_language: "Tu cuenta ya está lista para aprender %{language}. En Jellylang aprendes leyendo y escuchando contenido que te interesa: tú eliges qué leer y las palabras nuevas se convierten en tu vocabulario."
+      steps_title: "Empieza en tres pasos"
+      steps:
+        - title: "Importa algo que te guste"
+          text: "Un texto, un artículo o un video de YouTube."
+        - title: "Toca las palabras que no conoces"
+          text: "Guárdalas como LingQs con su traducción."
+        - title: "Repasa cada día"
+          text: "Unos minutos al día bastan para que se queden."
+      cta: "Empezar a aprender"
+      account: "Entras con %{email}."
+  # Nombre de los idiomas en los correos (si falta, se usa el nombre guardado en la base de datos)
+  languages:
+    en: "inglés"
+    es: "español"
+    fr: "francés"
+    de: "alemán"
+    it: "italiano"
+    pt: "portugués"
+    nl: "neerlandés"
+    ru: "ruso"

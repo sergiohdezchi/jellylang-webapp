@@ -1,10 +1,13 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../auth/AuthContext";
+import { useAuth, type PendingVerification } from "../auth/AuthContext";
 import { useI18n } from "../i18n/I18nProvider";
 import { useConfig } from "../hooks/useConfig";
 import { useLanguages } from "../hooks/useLanguages";
+import PasswordField from "../components/PasswordField/PasswordField";
+import { isPasswordValid } from "../lib/passwordPolicy";
 import AuthShell from "./AuthShell";
+import VerifyEmailStep from "./VerifyEmailStep";
 import styles from "./Auth.module.scss";
 
 export default function SignupPage() {
@@ -17,6 +20,8 @@ export default function SignupPage() {
     const [form, setForm] = useState({ email: "", password: "", name: "", native_language: locale as string, study_language_id: "" });
     const [error, setError] = useState<string | null>(null);
     const [busy, setBusy] = useState(false);
+    const [triedSubmit, setTriedSubmit] = useState(false);
+    const [pending, setPending] = useState<PendingVerification | null>(null);
 
     useEffect(() => {
         if (!form.study_language_id && languages.length > 0) {
@@ -30,16 +35,30 @@ export default function SignupPage() {
 
     async function handleSubmit(event: FormEvent) {
         event.preventDefault();
+        setTriedSubmit(true);
+        if (!isPasswordValid(form.password, form.email)) {
+            setError(t("auth.pw.invalid"));
+            return;
+        }
         setBusy(true);
         setError(null);
         try {
-            await signup({ ...form, ui_language: locale, study_language_id: Number(form.study_language_id) });
-            navigate("/", { replace: true });
+            const result = await signup({ ...form, ui_language: locale, study_language_id: Number(form.study_language_id) });
+            if (result) setPending(result);
+            else navigate("/", { replace: true });
         } catch (err) {
             setError(err instanceof Error ? err.message : t("common.error"));
         } finally {
             setBusy(false);
         }
+    }
+
+    if (pending) {
+        return (
+            <AuthShell>
+                <VerifyEmailStep pending={pending} password={form.password} onBack={() => setPending(null)} />
+            </AuthShell>
+        );
     }
 
     return (
@@ -56,19 +75,15 @@ export default function SignupPage() {
                     <span>{t("auth.email")}</span>
                     <input className="input" type="email" autoComplete="email" required value={form.email} onChange={update("email")} />
                 </label>
-                <label className="field">
-                    <span>{t("auth.password")}</span>
-                    <input
-                        className="input"
-                        type="password"
-                        autoComplete="new-password"
-                        minLength={8}
-                        required
-                        placeholder={t("auth.password_hint")}
-                        value={form.password}
-                        onChange={update("password")}
-                    />
-                </label>
+                <PasswordField
+                    label={t("auth.password")}
+                    autoComplete="new-password"
+                    showRules
+                    email={form.email}
+                    highlightErrors={triedSubmit}
+                    value={form.password}
+                    onChange={(password) => setForm((f) => ({ ...f, password }))}
+                />
                 <div className="form-row">
                     <label className="field">
                         <span>{t("auth.native_language")}</span>

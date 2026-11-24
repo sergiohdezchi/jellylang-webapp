@@ -4,6 +4,9 @@ import { api } from "../../api/client";
 import type { AdminUser, Paginated } from "../../api/types";
 import { useAuth } from "../../auth/AuthContext";
 import { useI18n } from "../../i18n/I18nProvider";
+import type { MessageKey } from "../../i18n/messages";
+import PasswordField from "../../components/PasswordField/PasswordField";
+import { PASSWORD_MIN_LENGTH, isPasswordValid, passwordFailures } from "../../lib/passwordPolicy";
 import { useLanguages } from "../../hooks/useLanguages";
 import styles from "./Admin.module.scss";
 
@@ -63,7 +66,11 @@ export default function UsersTab() {
     function changePassword(user: AdminUser) {
         const password = window.prompt(t("admin.password_prompt", { email: user.email }));
         if (password === null) return;
-        if (password.length < 8) return setMessage({ kind: "error", text: t("auth.password_hint") });
+        const failures = passwordFailures(password, user.email);
+        if (failures.length > 0) {
+            const rules = failures.map((rule) => t(`auth.pw.${rule}` as MessageKey, { min: PASSWORD_MIN_LENGTH })).join(" · ");
+            return setMessage({ kind: "error", text: `${t("auth.pw.invalid")}: ${rules}` });
+        }
         update.mutate({ id: user.id, password });
     }
 
@@ -132,6 +139,7 @@ export default function UsersTab() {
                                                         {self && <span className="badge">{t("admin.badge_you")}</span>}
                                                         {user.admin && <span className="badge accent">{t("admin.badge_admin")}</span>}
                                                         {user.disabled && <span className="badge danger">{t("admin.badge_disabled")}</span>}
+                                                        {!user.email_verified && <span className="badge">{t("admin.badge_unverified")}</span>}
                                                     </span>
                                                 </div>
                                             </td>
@@ -223,6 +231,7 @@ function NewUserForm({
 
     function submit(event: FormEvent) {
         event.preventDefault();
+        if (!isPasswordValid(form.password, form.email)) return onError(new Error(t("auth.pw.invalid")));
         create.mutate();
     }
 
@@ -241,19 +250,14 @@ function NewUserForm({
                     </label>
                 </div>
                 <div className="form-row">
-                    <label className="field">
-                        <span>{t("auth.password")}</span>
-                        <input
-                            className="input"
-                            type="password"
-                            autoComplete="new-password"
-                            minLength={8}
-                            required
-                            placeholder={t("auth.password_hint")}
-                            value={form.password}
-                            onChange={(e) => setForm({ ...form, password: e.target.value })}
-                        />
-                    </label>
+                    <PasswordField
+                        label={t("auth.password")}
+                        autoComplete="new-password"
+                        showRules
+                        email={form.email}
+                        value={form.password}
+                        onChange={(password) => setForm({ ...form, password })}
+                    />
                     <label className="field">
                         <span>{t("auth.study_language")}</span>
                         <select className="select" value={form.study_language_id} onChange={(e) => setForm({ ...form, study_language_id: e.target.value })}>

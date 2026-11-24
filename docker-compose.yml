@@ -12,6 +12,10 @@ x-api: &api
     REDIS_URL: redis://redis:6379/0
     # false = el servidor no usa yt-dlp; YouTube se importa solo con la extensión del navegador
     YTDLP_ENABLED: ${YTDLP_ENABLED:-true}
+    # Correo: por defecto va a Mailpit (http://localhost:8025). Para probar Zoho, define SMTP_* en .env.
+    SMTP_ADDRESS: ${SMTP_ADDRESS:-mailpit}
+    SMTP_PORT: ${SMTP_PORT:-1025}
+    APP_URL: ${APP_URL:-http://localhost:5173}
   volumes:
     - ./api:/rails
     - bundle_cache:/usr/local/bundle
@@ -47,6 +51,12 @@ services:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       retries: 10
+
+  # Recoge todo el correo que envía la app y lo muestra en http://localhost:8025 (no sale nada a internet)
+  mailpit:
+    image: axllent/mailpit:v1.29
+    ports:
+      - "${MAILPIT_PORT:-8025}:8025"
 
   api:
     <<: *api

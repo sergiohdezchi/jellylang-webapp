@@ -8,6 +8,16 @@ interface AuthResponse {
     user: User;
 }
 
+/** Registro pendiente de confirmar con el código enviado por correo */
+export interface PendingVerification {
+    verification_required: true;
+    email: string;
+    /** Segundos hasta poder pedir otro código */
+    resend_in: number;
+}
+
+const isPending = (data: AuthResponse | PendingVerification): data is PendingVerification => "verification_required" in data;
+
 export interface SignupData {
     email: string;
     password: string;
@@ -22,7 +32,14 @@ interface AuthContextValue {
     loading: boolean;
     language: Language | null;
     login: (email: string, password: string) => Promise<void>;
-    signup: (data: SignupData) => Promise<void>;
+    /** Devuelve el registro pendiente si hay que confirmar el email; null si ya inició sesión */
+    signup: (data: SignupData) => Promise<PendingVerification | null>;
+    /** Recuperar contraseña, paso 1: envía el código al email (responde igual exista o no la cuenta) */
+    forgotPassword: (email: string) => Promise<PendingVerification>;
+    /** Paso 2: cambia la contraseña con el código e inicia sesión */
+    resetPassword: (email: string, code: string, password: string) => Promise<void>;
+    verifyEmail: (email: string, password: string, code: string) => Promise<void>;
+    resendCode: (email: string, password: string) => Promise<PendingVerification>;
     logout: () => void;
     updateUser: (data: Record<string, unknown>) => Promise<User>;
 }
@@ -58,11 +75,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(data.user);
     }, []);
 
-    const signup = useCallback(async (payload: SignupData) => {
-        const data = await api<AuthResponse>("/auth/signup", { method: "POST", body: payload });
+    const startSession = useCallback((data: AuthResponse) => {
         setToken(data.token);
         setUser(data.user);
     }, []);
+
+    const signup = useCallback(
+        async (payload: SignupData) => {
+            const data = await api<AuthResponse | PendingVerification>("/auth/signup", { method: "POST", body: payload });
+            if (isPending(data)) return data;
+            startSession(data);
+            return null;
+        },
+        [startSession],
+    );
+
+    const verifyEmail = useCallback(
+        async (email: string, password: string, code: string) => {
+            startSession(await api<AuthResponse>("/auth/verify_email", { method: "POST", body: { email, password, code } }));
+        },
+        [startSession],
+    );
+
+    const forgotPassword = useCallback(async (email: string) => {
+        const data = await api<{ email: string; resend_in: number }>("/auth/forgot_password", { method: "POST", body: { email } });
+        return { verification_required: true as const, ...data };
+    }, []);
+
+    const resetPassword = useCallback(
+        async (email: string, code: string, password: string) => {
+            startSession(await api<AuthResponse>("/auth/reset_password", { method: "POST", body: { email, code, password } }));
+        },
+        [startSession],
+    );
+
+    const resendCode = useCallback(
+        async (email: string, password: string) => {
+            const data = await api<AuthResponse | PendingVerification>("/auth/resend_code", { method: "POST", body: { email, password } });
+            if (isPending(data)) return data;
+            // Ya estaba verificada (por ejemplo, desde otra pestaña)
+            startSession(data);
+            return { verification_required: true as const, email, resend_in: 0 };
+        },
+        [startSession],
+    );
 
     const updateUser = useCallback(
         async (data: Record<string, unknown>) => {
@@ -75,8 +131,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 
     const value = useMemo(
-        () => ({ user, loading, language: user?.current_language ?? null, login, signup, logout, updateUser }),
-        [user, loading, login, signup, logout, updateUser],
+        () => ({ user, loading, language: user?.current_language ?? null, login, signup, verifyEmail, resendCode, forgotPassword, resetPassword, logout, updateUser }),
+        [user, loading, login, signup, verifyEmail, resendCode, forgotPassword, resetPassword, logout, updateUser],
     );
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

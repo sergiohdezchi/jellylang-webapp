@@ -5,13 +5,15 @@ RSpec.describe "Flujo principal", type: :request do
   let(:language) { user.current_language }
   let(:headers) { auth_headers(user) }
 
-  it "registra e inicia sesión" do
-    post "/api/v1/auth/signup", params: { email: "Nuevo@Example.com", password: "password123", study_language_id: language.id }
-    expect(response).to have_http_status(:created)
-    expect(json.dig("user", "current_language", "code")).to eq("en")
+  it "registra (pendiente de código) e inicia sesión" do
+    post "/api/v1/auth/signup", params: { email: "Nuevo@Example.com", password: "Medusa-Azul-2026", study_language_id: language.id }
+    expect(response).to have_http_status(:accepted)
+    expect(json).not_to have_key("token")
 
-    post "/api/v1/auth/login", params: { email: "nuevo@example.com", password: "password123" }
+    User.find_by!(email: "nuevo@example.com").update_columns(email_verified_at: Time.current)
+    post "/api/v1/auth/login", params: { email: "nuevo@example.com", password: "Medusa-Azul-2026" }
     expect(json["token"]).to be_present
+    expect(json.dig("user", "current_language", "code")).to eq("en")
 
     post "/api/v1/auth/login", params: { email: "nuevo@example.com", password: "mala" }
     expect(response).to have_http_status(:unauthorized)

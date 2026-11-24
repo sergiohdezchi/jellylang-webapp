@@ -30,7 +30,9 @@ Rails.application.configure do
 
   # Store uploaded files on the local file system (see config/storage.yml for options).
 
-  # Don't care if the mailer can't send.
+  # Vista previa de los correos en http://localhost:3000/rails/mailers (plantillas en spec/mailers/previews)
+  config.action_mailer.preview_paths = [Rails.root.join("spec/mailers/previews").to_s]
+  config.action_mailer.show_previews = true
 
   # Make template changes take effect immediately.
 

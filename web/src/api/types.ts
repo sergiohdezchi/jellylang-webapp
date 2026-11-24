@@ -16,6 +16,7 @@ export interface User {
     ui_language: "es" | "en";
     native_language: string;
     admin: boolean;
+    email_verified: boolean;
     current_language: Language | null;
     languages: StudyLanguage[];
 }
@@ -186,6 +187,7 @@ export interface AdminUser {
     name: string | null;
     admin: boolean;
     disabled: boolean;
+    email_verified: boolean;
     current_language: string | null;
     lessons_count: number;
     lingqs_count: number;

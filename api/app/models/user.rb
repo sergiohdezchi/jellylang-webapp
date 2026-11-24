@@ -1,4 +1,6 @@
 class User < ApplicationRecord
+  include EmailVerifiable
+
   UI_LANGUAGES = %w[es en].freeze
 
   has_secure_password
@@ -17,7 +19,7 @@ class User < ApplicationRecord
 
   validates :email, presence: true, format: { with: URI::MailTo::EMAIL_REGEXP }
   validate :email_not_taken
-  validates :password, length: { minimum: 8 }, allow_nil: true
+  validate :password_strength, if: -> { password.present? }
   validates :ui_language, inclusion: { in: UI_LANGUAGES }
   validates :native_language, presence: true
 
@@ -37,12 +39,17 @@ class User < ApplicationRecord
       ui_language: ui_language,
       native_language: native_language,
       admin: admin,
+      email_verified: email_verified?,
       current_language: current_language,
       languages: user_languages.includes(:language).map(&:as_json)
     }
   end
 
   private
+
+  def password_strength
+    PasswordPolicy.violations(password, email: email).each { |rule| errors.add(:password, rule) }
+  end
 
   def email_not_taken
     scope = User.where("lower(email) = ?", email.to_s.downcase)

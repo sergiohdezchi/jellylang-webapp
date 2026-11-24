@@ -9,6 +9,10 @@ Rails.application.routes.draw do
     namespace :v1 do
       post "auth/signup", to: "auth#signup"
       post "auth/login", to: "auth#login"
+      post "auth/verify_email", to: "auth#verify_email"
+      post "auth/resend_code", to: "auth#resend_code"
+      post "auth/forgot_password", to: "auth#forgot_password"
+      post "auth/reset_password", to: "auth#reset_password"
       get "auth/me", to: "auth#me"
       patch "auth/me", to: "auth#update"
       delete "auth/session", to: "auth#destroy_session"

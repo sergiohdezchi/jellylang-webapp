@@ -14,10 +14,10 @@ end
 #   ADMIN_EMAIL / ADMIN_PASSWORD      administrador
 #   EXAMPLE_EMAIL / EXAMPLE_PASSWORD  usuario de ejemplo (habla español, aprende inglés)
 #
-# En desarrollo y pruebas las contraseñas por defecto son "password123". En producción no hay
+# En desarrollo y pruebas las contraseñas por defecto son "Medusa-Azul-2026". En producción no hay
 # contraseñas por defecto: si no defines la variable, se genera una aleatoria y se muestra una sola vez.
 # ---------------------------------------------------------------------------------------------
-DEFAULT_PASSWORD = "password123".freeze
+DEFAULT_PASSWORD = "Medusa-Azul-2026".freeze
 
 def seed_credentials(prefix, default_email)
   email = ENV["#{prefix}_EMAIL"].presence || default_email
@@ -25,7 +25,7 @@ def seed_credentials(prefix, default_email)
   generated = false
   if password.nil?
     if Rails.env.production?
-      password = SecureRandom.alphanumeric(20)
+      password = PasswordPolicy.generate
       generated = true
     else
       password = DEFAULT_PASSWORD
@@ -44,7 +44,7 @@ def seed_user(label, prefix, default_email, name:, admin:)
 
   english = Language.find_by!(code: "en")
   user = User.create!(email: email, name: name, password: password, native_language: "es", ui_language: "es",
-                      current_language: english, admin: admin)
+                      current_language: english, admin: admin, email_verified_at: Time.current)
   user.user_languages.create!(language: english, daily_goal: 20)
   puts "#{label}: #{email} / #{password}#{' (contraseña generada: guárdala, no se vuelve a mostrar)' if generated}"
   [user, true]
