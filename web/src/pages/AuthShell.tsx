@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Link } from "react-router-dom";
 import { useI18n } from "../i18n/I18nProvider";
 import styles from "./Auth.module.scss";
 
@@ -31,6 +32,9 @@ export default function AuthShell({ children }: { children: ReactNode }) {
                         </select>
                     </div>
                     {children}
+                    <p className={styles.legal}>
+                        <Link to="/terms">{t("legal.terms")}</Link> · <Link to="/privacy">{t("legal.privacy")}</Link>
+                    </p>
                 </div>
             </section>
         </div>

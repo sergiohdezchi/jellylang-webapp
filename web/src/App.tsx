@@ -13,6 +13,7 @@ import VocabularyPage from "./pages/VocabularyPage";
 import ReviewPage from "./pages/ReviewPage";
 import StatsPage from "./pages/StatsPage";
 import SettingsPage from "./pages/SettingsPage";
+import LegalPage from "./pages/LegalPage";
 import AdminPage from "./pages/admin/AdminPage";
 
 function RequireAuth({ children }: { children: ReactNode }) {
@@ -48,6 +49,8 @@ export default function App() {
         <Routes>
             <Route path="/login" element={user ? <Navigate to="/" replace /> : <LoginPage />} />
             <Route path="/forgot-password" element={user ? <Navigate to="/" replace /> : <ForgotPasswordPage />} />
+            <Route path="/terms" element={<LegalPage kind="terms" />} />
+            <Route path="/privacy" element={<LegalPage kind="privacy" />} />
             <Route path="/signup" element={user ? <Navigate to="/" replace /> : <SignupPage />} />
             <Route
                 element={
