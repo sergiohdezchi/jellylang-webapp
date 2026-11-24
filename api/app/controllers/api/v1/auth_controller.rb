@@ -64,6 +64,7 @@ module Api
           unless user.email_verified?
             user.update!(password: PasswordPolicy.generate, email_verified_at: Time.current, verification_code_digest: nil, verification_attempts: 0)
           end
+          user.update!(google_id: user.google_id || profile[:google_id], avatar_url: profile[:avatar_url] || user.avatar_url)
         else
           unless Features.signups_enabled?
             raise ApiError.new(I18n.t("errors.signups_disabled"), status: :forbidden, code: "signups_disabled")
@@ -73,7 +74,7 @@ module Api
           user = User.create!(
             email: profile[:email], name: profile[:name], password: PasswordPolicy.generate,
             ui_language: ui_language, native_language: params[:native_language].presence || ui_language,
-            email_verified_at: Time.current
+            email_verified_at: Time.current, google_id: profile[:google_id], avatar_url: profile[:avatar_url]
           )
         end
         render_session(user)

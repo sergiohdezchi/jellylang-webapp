@@ -97,6 +97,8 @@ module Api
             admin: user.admin,
             disabled: user.disabled?,
             email_verified: user.email_verified?,
+            google: user.google_id.present?,
+            avatar_url: user.avatar_url,
             current_language: user.current_language&.code,
             lessons_count: user.lessons_count.to_i,
             jellies_count: user.jellies_count.to_i,

@@ -40,6 +40,8 @@ class User < ApplicationRecord
       native_language: native_language,
       admin: admin,
       email_verified: email_verified?,
+      avatar_url: avatar_url,
+      google: google_id.present?,
       current_language: current_language,
       languages: user_languages.includes(:language).map(&:as_json)
     }

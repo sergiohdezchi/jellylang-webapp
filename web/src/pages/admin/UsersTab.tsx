@@ -1,3 +1,4 @@
+import Avatar from "../../components/Avatar/Avatar";
 import { useEffect, useState, type FormEvent } from "react";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../../api/client";
@@ -132,7 +133,9 @@ export default function UsersTab() {
                                     return (
                                         <tr key={user.id} className={user.disabled ? styles.dimmed : ""}>
                                             <td>
-                                                <div className={styles.userCell}>
+                                                <div className={styles.userRow}>
+                                                    <Avatar url={user.avatar_url} label={user.name || user.email} />
+                                                    <div className={styles.userCell}>
                                                     <strong>{user.email}</strong>
                                                     {user.name && <span className="muted">{user.name}</span>}
                                                     <span className={styles.badges}>
@@ -140,7 +143,9 @@ export default function UsersTab() {
                                                         {user.admin && <span className="badge accent">{t("admin.badge_admin")}</span>}
                                                         {user.disabled && <span className="badge danger">{t("admin.badge_disabled")}</span>}
                                                         {!user.email_verified && <span className="badge">{t("admin.badge_unverified")}</span>}
+                                                        {user.google && <span className="badge accent">{t("admin.badge_google")}</span>}
                                                     </span>
+                                                    </div>
                                                 </div>
                                             </td>
                                             <td>{user.current_language?.toUpperCase() ?? "—"}</td>

@@ -1,3 +1,4 @@
+import Avatar from "../Avatar/Avatar";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../api/client";
@@ -79,6 +80,7 @@ export default function Layout() {
                                 <Icon name="shield" />
                             </NavLink>
                         )}
+                        {user?.avatar_url && <Avatar url={user.avatar_url} label={user.name || user.email} size={30} />}
                         <NavLink to="/settings" className="btn ghost icon" title={t("nav.settings")} aria-label={t("nav.settings")}>
                             <Icon name="settings" />
                         </NavLink>

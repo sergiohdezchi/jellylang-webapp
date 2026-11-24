@@ -17,6 +17,8 @@ export interface User {
     native_language: string;
     admin: boolean;
     email_verified: boolean;
+    avatar_url: string | null;
+    google: boolean;
     current_language: Language | null;
     languages: StudyLanguage[];
 }
@@ -191,6 +193,8 @@ export interface AdminUser {
     admin: boolean;
     disabled: boolean;
     email_verified: boolean;
+    google: boolean;
+    avatar_url: string | null;
     current_language: string | null;
     lessons_count: number;
     jellies_count: number;

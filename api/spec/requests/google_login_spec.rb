@@ -4,9 +4,9 @@ RSpec.describe "Inicio de sesión con Google", type: :request do
   let(:tokeninfo_url) { %r{https://oauth2\.googleapis\.com/tokeninfo} }
   let(:client_id) { "cliente-123.apps.googleusercontent.com" }
 
-  def stub_google(email: "ana@example.com", name: "Ana Ríos", aud: client_id, verified: "true", iss: "https://accounts.google.com")
+  def stub_google(email: "ana@example.com", name: "Ana Ríos", aud: client_id, verified: "true", iss: "https://accounts.google.com", picture: "https://lh3.googleusercontent.com/a/foto")
     stub_request(:get, tokeninfo_url).to_return(
-      status: 200, body: { aud: aud, iss: iss, email: email, email_verified: verified, name: name }.to_json
+      status: 200, body: { aud: aud, iss: iss, email: email, email_verified: verified, name: name, sub: "g-#{email}", picture: picture }.to_json
     )
   end
 
@@ -46,6 +46,22 @@ RSpec.describe "Inicio de sesión con Google", type: :request do
       expect(user.email_verified?).to eq(true)
       expect(user.name).to eq("Nueva Persona")
       expect(user.ui_language).to eq("en")
+    end
+
+    it "guarda la foto y marca la cuenta como de Google (también si ya existía)" do
+      user = create_user(email: "ana@example.com")
+      stub_google(email: "ana@example.com")
+
+      post "/api/v1/auth/google", params: { credential: "token" }
+      expect(json.dig("user", "avatar_url")).to eq("https://lh3.googleusercontent.com/a/foto")
+      expect(json.dig("user", "google")).to eq(true)
+      expect(user.reload.google_id).to eq("g-ana@example.com")
+    end
+
+    it "ignora fotos que no son https" do
+      stub_google(email: "nueva@example.com", picture: "http://ejemplo.com/foto.png")
+      post "/api/v1/auth/google", params: { credential: "token" }
+      expect(User.find_by!(email: "nueva@example.com").avatar_url).to be_nil
     end
 
     it "no crea cuentas si el registro está cerrado, pero deja entrar a las existentes" do

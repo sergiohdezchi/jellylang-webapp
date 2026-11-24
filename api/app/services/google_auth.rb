@@ -10,7 +10,7 @@ module GoogleAuth
   def client_id = ENV["GOOGLE_CLIENT_ID"].to_s.strip
   def enabled? = client_id.present?
 
-  # Devuelve { email:, name: } si Google confirma el token y el correo, o nil si no es válido.
+  # Devuelve { google_id:, email:, name:, avatar_url: } si Google confirma el token y el correo, o nil si no es válido.
   def verify(credential)
     return nil unless enabled? && credential.present?
 
@@ -21,9 +21,15 @@ module GoogleAuth
 
     claims = JSON.parse(response.body)
     return nil unless claims["aud"] == client_id && ISSUERS.include?(claims["iss"])
-    return nil unless claims["email_verified"].to_s == "true" && claims["email"].present?
+    return nil unless claims["email_verified"].to_s == "true" && claims["email"].present? && claims["sub"].present?
 
-    { email: claims["email"].to_s.strip.downcase, name: claims["name"].to_s.strip.presence }
+    picture = claims["picture"].to_s
+    {
+      google_id: claims["sub"].to_s,
+      email: claims["email"].to_s.strip.downcase,
+      name: claims["name"].to_s.strip.presence,
+      avatar_url: picture.start_with?("https://") ? picture : nil
+    }
   rescue StandardError => e
     Rails.logger.error("[google] no se pudo verificar: #{e.class}: #{e.message}")
     nil
