@@ -11,5 +11,5 @@ api/tmp/*
 api/config/master.key
 .DS_Store
 
-# Extensión de LingQ usada solo como referencia (código de terceros: no se versiona)
+# Extensión de referencia de terceros (no se versiona)
 extension_example/

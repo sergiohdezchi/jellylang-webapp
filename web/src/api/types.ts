@@ -62,12 +62,12 @@ export interface VocabEntry {
     term: string;
     status: WordStatus;
     level: number;
-    lingq_id: number | null;
+    jelly_id: number | null;
     meaning: string | null;
 }
 
 export interface PhraseEntry extends VocabEntry {
-    lingq_id: number;
+    jelly_id: number;
 }
 
 export interface LessonDetail extends Lesson {
@@ -85,7 +85,7 @@ export interface Course {
     lessons_count: number;
 }
 
-export interface Lingq {
+export interface Jelly {
     id: number;
     term: string;
     meaning: string | null;
@@ -103,7 +103,7 @@ export interface Lingq {
     created_at: string;
 }
 
-export interface DueItem extends Lingq {
+export interface DueItem extends Jelly {
     intervals: Record<"1" | "2" | "3" | "4", number>;
 }
 
@@ -118,7 +118,7 @@ export interface DayStats {
     date: string;
     words_read: number;
     listening_seconds: number;
-    new_lingqs: number;
+    new_jellies: number;
     known_words: number;
     reviews: number;
 }
@@ -126,7 +126,7 @@ export interface DayStats {
 export interface Stats {
     language_id: number;
     known_words: number;
-    lingqs: number;
+    jellies: number;
     due_reviews: number;
     words_read: number;
     listening_seconds: number;
@@ -159,7 +159,7 @@ export interface AppConfig {
 export interface AdminOverview {
     users: { total: number; admins: number; disabled: number; new_this_week: number; active_this_week: number };
     lessons: { total: number; youtube: number; processing: number; failed: number };
-    lingqs: number;
+    jellies: number;
     reviews_this_week: number;
     languages: number;
     failed_imports: {
@@ -192,7 +192,7 @@ export interface AdminUser {
     email_verified: boolean;
     current_language: string | null;
     lessons_count: number;
-    lingqs_count: number;
+    jellies_count: number;
     last_active_on: string | null;
     created_at: string;
 }

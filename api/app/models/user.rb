@@ -11,7 +11,7 @@ class User < ApplicationRecord
   has_many :courses, dependent: :delete_all
   has_many :lessons, dependent: :destroy
   has_many :user_words, dependent: :delete_all
-  has_many :lingqs, dependent: :delete_all
+  has_many :jellies, dependent: :delete_all
   has_many :review_logs, dependent: :delete_all
   has_many :daily_stats, dependent: :delete_all
 

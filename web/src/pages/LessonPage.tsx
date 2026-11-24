@@ -91,13 +91,13 @@ function LessonReader({ lesson }: { lesson: LessonDetail }) {
     const counts = useMemo(() => {
         const unique = new Set(prepared.flatMap((p) => p.terms));
         let fresh = 0;
-        let lingqs = 0;
+        let jellies = 0;
         unique.forEach((term) => {
             const entry = vocabulary.entries.get(term);
             if (!entry) fresh++;
-            else if (entry.status === "learning") lingqs++;
+            else if (entry.status === "learning") jellies++;
         });
-        return { fresh, lingqs };
+        return { fresh, jellies };
     }, [prepared, vocabulary.entries]);
 
     const initialTime = Number(params.get("t")) || undefined;
@@ -126,7 +126,7 @@ function LessonReader({ lesson }: { lesson: LessonDetail }) {
                     <div className={styles.meta}>
                         {lesson.author && <span>{lesson.author}</span>}
                         <span className={styles.legendNew}>{t("lesson.new_words", { count: counts.fresh })}</span>
-                        <span className={styles.legendLingq}>{t("lesson.lingqs_count", { count: counts.lingqs })}</span>
+                        <span className={styles.legendJelly}>{t("lesson.jellies_count", { count: counts.jellies })}</span>
                         {lesson.source_url && (
                             <a href={lesson.source_url} target="_blank" rel="noreferrer">
                                 <Icon name="external" size={13} />

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, download } from "../api/client";
-import type { Lingq, Paginated } from "../api/types";
+import type { Jelly, Paginated } from "../api/types";
 import { useLanguage } from "../auth/AuthContext";
 import { useI18n } from "../i18n/I18nProvider";
 import Icon from "../components/Icon";
@@ -31,36 +31,36 @@ export default function VocabularyPage() {
 
     const filters = { language_id: language.id, q, level, kind };
     const { data, isLoading } = useQuery({
-        queryKey: ["lingqs", filters, page],
-        queryFn: () => api<Paginated<Lingq>>("/lingqs", { query: { ...filters, page } }),
+        queryKey: ["jellies", filters, page],
+        queryFn: () => api<Paginated<Jelly>>("/jellies", { query: { ...filters, page } }),
         placeholderData: keepPreviousData,
     });
 
     const update = useMutation({
         mutationFn: ({ id, ...changes }: { id: number; meaning?: string; level?: number }) =>
-            api(`/lingqs/${id}`, { method: "PATCH", body: changes }),
+            api(`/jellies/${id}`, { method: "PATCH", body: changes }),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["lingqs"] });
+            queryClient.invalidateQueries({ queryKey: ["jellies"] });
             queryClient.invalidateQueries({ queryKey: ["lesson"] });
         },
     });
 
     const markKnown = useMutation({
-        mutationFn: (lingq: Lingq) =>
+        mutationFn: (jelly: Jelly) =>
             api("/user_words", {
                 method: "PUT",
-                body: { language_id: language.id, term: lingq.term, status: lingq.status === "known" ? "learning" : "known", level: lingq.level },
+                body: { language_id: language.id, term: jelly.term, status: jelly.status === "known" ? "learning" : "known", level: jelly.level },
             }),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["lingqs"] });
+            queryClient.invalidateQueries({ queryKey: ["jellies"] });
             queryClient.invalidateQueries({ queryKey: ["stats"] });
         },
     });
 
     const remove = useMutation({
-        mutationFn: (id: number) => api(`/lingqs/${id}`, { method: "DELETE" }),
+        mutationFn: (id: number) => api(`/jellies/${id}`, { method: "DELETE" }),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["lingqs"] });
+            queryClient.invalidateQueries({ queryKey: ["jellies"] });
             queryClient.invalidateQueries({ queryKey: ["stats"] });
         },
     });
@@ -74,10 +74,10 @@ export default function VocabularyPage() {
                     {t("vocab.title")} {data && <span className="muted">· {t("vocab.total", { count: data.total })}</span>}
                 </h1>
                 <div className={styles.exports}>
-                    <button className="btn small" onClick={() => download("/lingqs/export", { ...filters, format_type: "csv" })}>
+                    <button className="btn small" onClick={() => download("/jellies/export", { ...filters, format_type: "csv" })}>
                         <Icon name="download" size={16} /> {t("vocab.export_csv")}
                     </button>
-                    <button className="btn small" onClick={() => download("/lingqs/export", { ...filters, format_type: "anki" })}>
+                    <button className="btn small" onClick={() => download("/jellies/export", { ...filters, format_type: "anki" })}>
                         <Icon name="download" size={16} /> {t("vocab.export_anki")}
                     </button>
                 </div>
@@ -124,30 +124,30 @@ export default function VocabularyPage() {
             ) : (
                 <>
                     <ul className={styles.list}>
-                        {data.items.map((lingq) => (
-                            <li key={lingq.id} className={styles.item}>
+                        {data.items.map((jelly) => (
+                            <li key={jelly.id} className={styles.item}>
                                 <div className={styles.main}>
                                     <div className={styles.term}>
-                                        {lingq.term}
-                                        {lingq.is_phrase && <span className="badge">{t("panel.phrase")}</span>}
+                                        {jelly.term}
+                                        {jelly.is_phrase && <span className="badge">{t("panel.phrase")}</span>}
                                     </div>
                                     <input
                                         className={styles.meaning}
-                                        defaultValue={lingq.meaning ?? ""}
+                                        defaultValue={jelly.meaning ?? ""}
                                         placeholder={t("panel.meaning_placeholder")}
                                         aria-label={t("panel.meaning")}
                                         onBlur={(e) => {
                                             const value = e.target.value.trim();
-                                            if (value !== (lingq.meaning ?? "")) update.mutate({ id: lingq.id, meaning: value });
+                                            if (value !== (jelly.meaning ?? "")) update.mutate({ id: jelly.id, meaning: value });
                                         }}
                                     />
-                                    {lingq.context && <p className={styles.context}>{lingq.context}</p>}
-                                    {lingq.lesson_id && (
+                                    {jelly.context && <p className={styles.context}>{jelly.context}</p>}
+                                    {jelly.lesson_id && (
                                         <Link
                                             className={styles.source}
-                                            to={`/lessons/${lingq.lesson_id}${lingq.video_time ? `?t=${Math.floor(lingq.video_time)}` : ""}`}
+                                            to={`/lessons/${jelly.lesson_id}${jelly.video_time ? `?t=${Math.floor(jelly.video_time)}` : ""}`}
                                         >
-                                            <Icon name={lingq.youtube_id ? "video" : "book"} size={13} /> {lingq.lesson_title}
+                                            <Icon name={jelly.youtube_id ? "video" : "book"} size={13} /> {jelly.lesson_title}
                                         </Link>
                                     )}
                                 </div>
@@ -156,16 +156,16 @@ export default function VocabularyPage() {
                                         {LEVELS.map((l) => (
                                             <button
                                                 key={l}
-                                                className={`${styles.level} ${styles[`l${l}`]} ${lingq.status === "learning" && lingq.level === l ? styles.current : ""}`}
-                                                onClick={() => update.mutate({ id: lingq.id, level: l })}
+                                                className={`${styles.level} ${styles[`l${l}`]} ${jelly.status === "learning" && jelly.level === l ? styles.current : ""}`}
+                                                onClick={() => update.mutate({ id: jelly.id, level: l })}
                                                 aria-label={t("vocab.level", { level: l })}
                                             >
                                                 {l}
                                             </button>
                                         ))}
                                         <button
-                                            className={`${styles.level} ${styles.known} ${lingq.status === "known" ? styles.current : ""}`}
-                                            onClick={() => markKnown.mutate(lingq)}
+                                            className={`${styles.level} ${styles.known} ${jelly.status === "known" ? styles.current : ""}`}
+                                            onClick={() => markKnown.mutate(jelly)}
                                             aria-label={t("panel.known")}
                                             title={t("panel.known")}
                                         >
@@ -176,7 +176,7 @@ export default function VocabularyPage() {
                                         className="btn ghost icon small"
                                         aria-label={t("common.delete")}
                                         title={t("common.delete")}
-                                        onClick={() => window.confirm(t("vocab.delete_confirm", { term: lingq.term })) && remove.mutate(lingq.id)}
+                                        onClick={() => window.confirm(t("vocab.delete_confirm", { term: jelly.term })) && remove.mutate(jelly.id)}
                                     >
                                         <Icon name="trash" size={16} />
                                     </button>

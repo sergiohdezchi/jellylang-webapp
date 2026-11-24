@@ -120,7 +120,7 @@ export default function UsersTab() {
                                     <th>{t("admin.col_user")}</th>
                                     <th>{t("admin.col_language")}</th>
                                     <th className={styles.num}>{t("admin.col_lessons")}</th>
-                                    <th className={styles.num}>{t("stats.lingqs")}</th>
+                                    <th className={styles.num}>{t("stats.jellies")}</th>
                                     <th>{t("admin.col_last_active")}</th>
                                     <th>{t("admin.col_created")}</th>
                                     <th>{t("admin.actions")}</th>
@@ -145,7 +145,7 @@ export default function UsersTab() {
                                             </td>
                                             <td>{user.current_language?.toUpperCase() ?? "—"}</td>
                                             <td className={styles.num}>{user.lessons_count}</td>
-                                            <td className={styles.num}>{user.lingqs_count}</td>
+                                            <td className={styles.num}>{user.jellies_count}</td>
                                             <td className={styles.nowrap}>{day(user.last_active_on)}</td>
                                             <td className={styles.nowrap}>{day(user.created_at)}</td>
                                             <td>

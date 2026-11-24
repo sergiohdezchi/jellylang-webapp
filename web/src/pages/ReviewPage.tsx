@@ -57,12 +57,12 @@ export default function ReviewPage() {
         if (!card || busy) return;
         setBusy(true);
         try {
-            await api("/reviews", { method: "POST", body: { lingq_id: card.id, rating } });
+            await api("/reviews", { method: "POST", body: { jelly_id: card.id, rating } });
             setReviewed((n) => n + 1);
             // "Otra vez" vuelve al final de la cola de esta sesión
             setQueue((q) => (q ? (rating === 1 ? [...q.slice(1), q[0]] : q.slice(1)) : q));
             queryClient.invalidateQueries({ queryKey: ["stats"] });
-            queryClient.invalidateQueries({ queryKey: ["lingqs"] });
+            queryClient.invalidateQueries({ queryKey: ["jellies"] });
         } finally {
             setBusy(false);
         }

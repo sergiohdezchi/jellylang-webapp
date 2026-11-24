@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_23_000002) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_24_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -41,13 +41,38 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_23_000002) do
     t.date "date", null: false
     t.integer "words_read", default: 0, null: false
     t.integer "listening_seconds", default: 0, null: false
-    t.integer "new_lingqs", default: 0, null: false
+    t.integer "new_jellies", default: 0, null: false
     t.integer "known_words", default: 0, null: false
     t.integer "reviews", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["language_id"], name: "index_daily_stats_on_language_id"
     t.index ["user_id", "language_id", "date"], name: "index_daily_stats_on_user_id_and_language_id_and_date", unique: true
+  end
+
+  create_table "jellies", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "word_id", null: false
+    t.bigint "language_id", null: false
+    t.bigint "lesson_id"
+    t.bigint "segment_id"
+    t.text "meaning"
+    t.text "notes"
+    t.text "context"
+    t.float "video_time"
+    t.boolean "is_phrase", default: false, null: false
+    t.datetime "next_review_at", null: false
+    t.float "interval", default: 0.0, null: false
+    t.float "ease", default: 2.5, null: false
+    t.integer "repetitions", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["language_id"], name: "index_jellies_on_language_id"
+    t.index ["lesson_id"], name: "index_jellies_on_lesson_id"
+    t.index ["segment_id"], name: "index_jellies_on_segment_id"
+    t.index ["user_id", "next_review_at"], name: "index_jellies_on_user_id_and_next_review_at"
+    t.index ["user_id", "word_id"], name: "index_jellies_on_user_id_and_word_id", unique: true
+    t.index ["word_id"], name: "index_jellies_on_word_id"
   end
 
   create_table "languages", force: :cascade do |t|
@@ -86,37 +111,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_23_000002) do
     t.index ["user_id"], name: "index_lessons_on_user_id"
   end
 
-  create_table "lingqs", force: :cascade do |t|
-    t.bigint "user_id", null: false
-    t.bigint "word_id", null: false
-    t.bigint "language_id", null: false
-    t.bigint "lesson_id"
-    t.bigint "segment_id"
-    t.text "meaning"
-    t.text "notes"
-    t.text "context"
-    t.float "video_time"
-    t.boolean "is_phrase", default: false, null: false
-    t.datetime "next_review_at", null: false
-    t.float "interval", default: 0.0, null: false
-    t.float "ease", default: 2.5, null: false
-    t.integer "repetitions", default: 0, null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["language_id"], name: "index_lingqs_on_language_id"
-    t.index ["lesson_id"], name: "index_lingqs_on_lesson_id"
-    t.index ["segment_id"], name: "index_lingqs_on_segment_id"
-    t.index ["user_id", "next_review_at"], name: "index_lingqs_on_user_id_and_next_review_at"
-    t.index ["user_id", "word_id"], name: "index_lingqs_on_user_id_and_word_id", unique: true
-    t.index ["word_id"], name: "index_lingqs_on_word_id"
-  end
-
   create_table "review_logs", force: :cascade do |t|
     t.bigint "user_id", null: false
-    t.bigint "lingq_id", null: false
+    t.bigint "jelly_id", null: false
     t.integer "rating", null: false
     t.datetime "reviewed_at", null: false
-    t.index ["lingq_id"], name: "index_review_logs_on_lingq_id"
+    t.index ["jelly_id"], name: "index_review_logs_on_jelly_id"
     t.index ["user_id"], name: "index_review_logs_on_user_id"
   end
 
@@ -192,15 +192,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_23_000002) do
   add_foreign_key "courses", "users", on_delete: :cascade
   add_foreign_key "daily_stats", "languages"
   add_foreign_key "daily_stats", "users", on_delete: :cascade
+  add_foreign_key "jellies", "languages"
+  add_foreign_key "jellies", "lessons", on_delete: :nullify
+  add_foreign_key "jellies", "segments", on_delete: :nullify
+  add_foreign_key "jellies", "users", on_delete: :cascade
+  add_foreign_key "jellies", "words", on_delete: :cascade
   add_foreign_key "lessons", "courses", on_delete: :nullify
   add_foreign_key "lessons", "languages"
   add_foreign_key "lessons", "users", on_delete: :cascade
-  add_foreign_key "lingqs", "languages"
-  add_foreign_key "lingqs", "lessons", on_delete: :nullify
-  add_foreign_key "lingqs", "segments", on_delete: :nullify
-  add_foreign_key "lingqs", "users", on_delete: :cascade
-  add_foreign_key "lingqs", "words", on_delete: :cascade
-  add_foreign_key "review_logs", "lingqs", on_delete: :cascade
+  add_foreign_key "review_logs", "jellies", on_delete: :cascade
   add_foreign_key "review_logs", "users", on_delete: :cascade
   add_foreign_key "segments", "lessons", on_delete: :cascade
   add_foreign_key "user_languages", "languages"

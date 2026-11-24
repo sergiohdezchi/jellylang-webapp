@@ -14,16 +14,16 @@ module Api
         user_word = current_user.user_words.find_or_initialize_by(word: word)
         previous = user_word.persisted? ? user_word.status : "new"
 
-        Lingq.transaction do
+        Jelly.transaction do
           case status
           when "new"
             user_word.destroy! if user_word.persisted?
-            current_user.lingqs.where(word: word).delete_all
+            current_user.jellies.where(word: word).delete_all
           when "learning"
             user_word.update!(status: "learning", level: params[:level].to_i.clamp(1, 4))
-            current_user.lingqs.find_or_create_by!(word: word) do |lingq|
-              lingq.language = language
-              lingq.is_phrase = word.term.include?(" ")
+            current_user.jellies.find_or_create_by!(word: word) do |jelly|
+              jelly.language = language
+              jelly.is_phrase = word.term.include?(" ")
             end
           else
             user_word.update!(status: status, level: user_word.level || 1)
@@ -37,7 +37,7 @@ module Api
       end
 
       # POST /user_words/bulk { language_id, terms: [] }
-      # Marca como conocidas las palabras que todavía son nuevas (no toca LingQs ni ignoradas).
+      # Marca como conocidas las palabras que todavía son nuevas (no toca Jellies ni ignoradas).
       def bulk
         language = language_param
         terms = Array(params.require(:terms)).map { |t| Text::Tokenizer.normalize(t) }.reject(&:empty?).uniq.first(MAX_BULK)

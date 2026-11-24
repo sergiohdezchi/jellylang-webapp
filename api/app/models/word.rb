@@ -1,7 +1,7 @@
 class Word < ApplicationRecord
   belongs_to :language
   has_many :user_words, dependent: :delete_all
-  has_many :lingqs, dependent: :delete_all
+  has_many :jellies, dependent: :delete_all
 
   validates :term, presence: true, length: { maximum: 500 }
 

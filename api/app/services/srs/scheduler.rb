@@ -37,9 +37,9 @@ module Srs
     end
 
     # Segundos hasta la próxima revisión para cada botón (para mostrarlo en la UI).
-    def preview(lingq, now: Time.current)
+    def preview(jelly, now: Time.current)
       RATINGS.to_h do |rating|
-        state = next_state(interval: lingq.interval, ease: lingq.ease, repetitions: lingq.repetitions, rating: rating, now: now)
+        state = next_state(interval: jelly.interval, ease: jelly.ease, repetitions: jelly.repetitions, rating: rating, now: now)
         [rating, (state[:next_review_at] - now).round]
       end
     end

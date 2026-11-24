@@ -24,15 +24,15 @@ RSpec.describe "Flujo principal", type: :request do
     expect(response).to have_http_status(:unauthorized)
   end
 
-  it "crea una lección, guarda un LingQ, marca palabras y repasa" do
+  it "crea una lección, guarda un Jelly, marca palabras y repasa" do
     post "/api/v1/lessons", params: { language_id: language.id, content: "The cat sleeps. The dog barks!" }, headers: headers
     expect(response).to have_http_status(:created)
     lesson_id = json["id"]
     expect(json["word_count"]).to eq(6)
 
-    post "/api/v1/lingqs", params: { language_id: language.id, term: "Cat", meaning: "gato", lesson_id: lesson_id }, headers: headers
+    post "/api/v1/jellies", params: { language_id: language.id, term: "Cat", meaning: "gato", lesson_id: lesson_id }, headers: headers
     expect(json["entry"]).to include("term" => "cat", "status" => "learning", "level" => 1, "meaning" => "gato")
-    lingq_id = json.dig("lingq", "id")
+    jelly_id = json.dig("jelly", "id")
 
     post "/api/v1/user_words/bulk", params: { language_id: language.id, terms: %w[the cat sleeps] }, headers: headers
     expect(json["terms"]).to match_array(%w[the sleeps])
@@ -45,12 +45,12 @@ RSpec.describe "Flujo principal", type: :request do
     get "/api/v1/reviews/due", params: { language_id: language.id }, headers: headers
     expect(json["total"]).to eq(1)
 
-    post "/api/v1/reviews", params: { lingq_id: lingq_id, rating: 3 }, headers: headers
+    post "/api/v1/reviews", params: { jelly_id: jelly_id, rating: 3 }, headers: headers
     expect(response).to have_http_status(:ok)
     expect(json["level"]).to eq(2)
 
     get "/api/v1/stats", params: { language_id: language.id }, headers: headers
-    expect(json).to include("known_words" => 2, "lingqs" => 1, "due_reviews" => 0, "streak" => 1)
+    expect(json).to include("known_words" => 2, "jellies" => 1, "due_reviews" => 0, "streak" => 1)
     expect(json.dig("today", "reviews")).to eq(1)
   end
 

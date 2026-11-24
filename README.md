@@ -2,9 +2,7 @@
 
 # Jellylang
 
-Aplicación web para aprender idiomas mediante **lectura y escucha de contenido real**: textos, artículos y videos de YouTube. Lees, haces clic en las palabras que no conoces, las guardas como **LingQs** y las repasas con repetición espaciada.
-
-> Proyecto independiente inspirado en el método de LingQ. "LingQ" es una marca de sus propietarios; aquí solo se usa como nombre genérico de "palabra guardada".
+Aplicación web para aprender idiomas mediante **lectura y escucha de contenido real**: textos, artículos y videos de YouTube. Lees, haces clic en las palabras que no conoces, las guardas como **Jellies** y las repasas con repetición espaciada.
 
 ## Inicio rápido
 
@@ -83,10 +81,10 @@ Si tu base de datos se sembró antes con `password123`, esas cuentas conservan s
 - Cada palabra es clicable y abre un panel con sugerencias de traducción, diccionarios externos (Google Translate, Wiktionary, Reverso, WordReference) y pronunciación (síntesis de voz del navegador).
 - Colores según el conocimiento:
   - **Azul**: palabra nueva.
-  - **Amarillo** (de intenso a suave): LingQ de nivel 1 a 4.
+  - **Amarillo** (de intenso a suave): Jelly de nivel 1 a 4.
   - **Sin color**: conocida o ignorada.
-- **Frases**: selecciona varias palabras con el ratón para guardarlas como un LingQ; aparecen subrayadas en el texto.
-- Lecciones de texto paginadas (~220 palabras). Al pasar de página, las palabras azules se marcan como conocidas (como en LingQ).
+- **Frases**: selecciona varias palabras con el ratón para guardarlas como un Jelly; aparecen subrayadas en el texto.
+- Lecciones de texto paginadas (~220 palabras). Al pasar de página, las palabras azules se marcan como conocidas.
 - Atajos de teclado con el panel abierto: <kbd>1</kbd>–<kbd>4</kbd> nivel, <kbd>K</kbd> conocida, <kbd>X</kbd> ignorar, <kbd>Esc</kbd> cerrar.
 
 ### Lector sincronizado con video
@@ -94,7 +92,7 @@ Si tu base de datos se sembró antes con `password123`, esas cuentas conservan s
 - Además se marca la **palabra que se está diciendo**, pero solo cuando hay tiempos reales por palabra: los subtítulos automáticos de YouTube (error típico de unas decenas de ms). Con subtítulos manuales YouTube no da ese dato, y como estimarlo marcaba palabras equivocadas, se resalta solo la frase.
 - Clic en el tiempo de una frase para reproducir desde ahí; frase anterior/siguiente, repetir y **bucle de frase**.
 - Velocidad de 0.5× a 2×; pausa automática al abrir una palabra (opcional).
-- Cada LingQ guarda el momento del video: desde el vocabulario o el repaso puedes volver a esa frase (`?t=segundos`).
+- Cada Jelly guarda el momento del video: desde el vocabulario o el repaso puedes volver a esa frase (`?t=segundos`).
 
 ### Lectura en voz alta de textos
 - Las lecciones de texto, artículos y archivos se pueden **escuchar** con la síntesis de voz del navegador, con los mismos controles que el video (frase anterior/siguiente, repetir, bucle, velocidad).
@@ -109,19 +107,19 @@ Si tu base de datos se sembró antes con `password123`, esas cuentas conservan s
 - En pantallas de menos de 1240 px el panel de palabra es una hoja inferior; con el video en pausa y una palabra abierta, el video deja de estar fijo para ganar espacio.
 
 ### Vocabulario y repaso
-- Lista de LingQs con búsqueda, filtros por nivel y tipo (palabra/frase) y edición en línea del significado.
+- Lista de Jellies con búsqueda, filtros por nivel y tipo (palabra/frase) y edición en línea del significado.
 - Exportación a **CSV** y a **Anki** (TSV con anverso, reverso con contexto y etiquetas).
 - Repaso con **SM-2** (Otra vez / Difícil / Bien / Fácil) mostrando el próximo intervalo de cada botón.
 - Dos modos: **tarjetas** y **escritura** (escribes la palabra a partir del significado y el contexto).
 
 ### Progreso
-- Palabras conocidas, LingQs, racha diaria, palabras leídas, horas de escucha y repasos pendientes.
-- Meta diaria de LingQs nuevos por idioma y gráfico de los últimos 7 días.
+- Palabras conocidas, Jellies, racha diaria, palabras leídas, horas de escucha y repasos pendientes.
+- Meta diaria de Jellies nuevos por idioma y gráfico de los últimos 7 días.
 - Las estadísticas usan la zona horaria del navegador (cabecera `X-Timezone`).
 
 ### Panel de administración
 - En `/admin` (icono de escudo en la cabecera, solo para administradores):
-  - **Resumen:** usuarios, actividad de la semana, lecciones, LingQs e importaciones fallidas recientes (útil para ver si yt-dlp dejó de funcionar).
+  - **Resumen:** usuarios, actividad de la semana, lecciones, Jellies e importaciones fallidas recientes (útil para ver si yt-dlp dejó de funcionar).
   - **Ajustes:** activar o desactivar la importación con yt-dlp y el registro abierto. Se aplican al momento en la API y en el worker.
   - **Usuarios:** buscar, crear cuentas (también con el registro cerrado), dar o quitar el rol de administrador, desactivar (corta sus sesiones al momento), cambiar la contraseña y borrar con todos sus datos.
   - **Idiomas:** añadir (código ISO 639 de 2-3 letras), renombrar, desactivar (deja de ofrecerse, pero quien ya lo estudia lo conserva) y borrar si nadie lo usa.
@@ -211,7 +209,7 @@ Registro, login y «olvidé mi contraseña» piden **reCAPTCHA v2** («No soy un
 
 ### Importación con la extensión del navegador
 
-La extensión ([extension/](extension/README.md)) es la forma recomendada de importar videos de YouTube. Sigue el mismo esquema que el importador de LingQ y funciona desde tu navegador, **sin que el servidor consulte a YouTube**:
+La extensión ([extension/](extension/README.md)) es la forma recomendada de importar videos de YouTube. Funciona desde tu navegador, **sin que el servidor consulte a YouTube**:
 
 1. **Sesión:** inicias sesión en la web de Jellylang. Al hacerlo, la API deja el token en la cookie `jellylang_token` (HttpOnly). La extensión la lee y no necesita un inicio de sesión propio; al salir de la web, la cookie se borra.
 2. **Datos del video:** al abrir un video, la extensión pide su información y sus pistas de subtítulos a la API del reproductor de YouTube (`youtubei/v1/player`), **identificándose como la app de Android**. Con ese cliente, YouTube devuelve URLs de subtítulos que se pueden descargar sin el token que exige su web.
@@ -306,18 +304,18 @@ segments(lesson_id, position, paragraph, text, start_time, end_time)
 
 words(language_id, term, lemma)                    -- palabras y frases normalizadas
 user_words(user_id, word_id, status, level)        -- ausente = palabra nueva
-lingqs(user_id, word_id, language_id, lesson_id, segment_id, meaning, notes, context,
+jellies(user_id, word_id, language_id, lesson_id, segment_id, meaning, notes, context,
        video_time, is_phrase, next_review_at, interval, ease, repetitions)
 
-review_logs(user_id, lingq_id, rating, reviewed_at)
+review_logs(user_id, jelly_id, rating, reviewed_at)
 daily_stats(user_id, language_id, date, words_read, listening_seconds,
-            new_lingqs, known_words, reviews)
+            new_jellies, known_words, reviews)
 ```
 
 - `lessons.source_type`: `text | url | file | youtube`
 - `lessons.status`: `processing | ready | failed`
 - `user_words.status`: `learning | known | ignored` (el nivel 1–4 solo aplica a `learning`)
-- Índices únicos: `words(language_id, term)`, `user_words(user_id, word_id)`, `lingqs(user_id, word_id)`, `daily_stats(user_id, language_id, date)`.
+- Índices únicos: `words(language_id, term)`, `user_words(user_id, word_id)`, `jellies(user_id, word_id)`, `daily_stats(user_id, language_id, date)`.
 
 ---
 
@@ -352,11 +350,11 @@ Todas las rutas cuelgan de `/api/v1` y, salvo registro, login e idiomas, requier
 | DELETE | `/lessons/:id` | Eliminar lección |
 | POST | `/lessons/:id/subtitles` | Subir SRT/VTT manualmente |
 | POST | `/lessons/:id/reimport` | Reintentar la importación de YouTube |
-| GET | `/lingqs` | Listar LingQs (`q`, `level` 1–4 o `known`, `kind`, `page`) |
-| GET | `/lingqs/export` | Exportar (`format_type` = `csv` o `anki`) |
-| POST | `/lingqs` | Guardar palabra o frase |
-| PATCH | `/lingqs/:id` | Significado, notas o nivel |
-| DELETE | `/lingqs/:id` | Eliminar (la palabra vuelve a ser nueva) |
+| GET | `/jellies` | Listar Jellies (`q`, `level` 1–4 o `known`, `kind`, `page`) |
+| GET | `/jellies/export` | Exportar (`format_type` = `csv` o `anki`) |
+| POST | `/jellies` | Guardar palabra o frase |
+| PATCH | `/jellies/:id` | Significado, notas o nivel |
+| DELETE | `/jellies/:id` | Eliminar (la palabra vuelve a ser nueva) |
 | PUT | `/user_words` | Cambiar el estado de una palabra (`new`, `learning`, `known`, `ignored`) |
 | POST | `/user_words/bulk` | Marcar como conocidas varias palabras nuevas |
 | GET | `/reviews/due` | Tarjetas pendientes con el intervalo de cada botón |
@@ -375,7 +373,7 @@ Los errores se devuelven como `{ "error": "mensaje" }` en el idioma de interfaz 
 .
 ├── api/                                # Rails API
 │   ├── app/
-│   │   ├── controllers/api/v1/         # auth, lessons, lingqs, user_words, reviews, stats…
+│   │   ├── controllers/api/v1/         # auth, lessons, jellies, user_words, reviews, stats…
 │   │   ├── jobs/                       # ImportYoutubeLessonJob (Sidekiq)
 │   │   ├── models/
 │   │   └── services/
@@ -616,7 +614,7 @@ Genera secretos con `openssl rand -hex 64`. No subas `.env` al repositorio (ya e
 - [x] Autenticación con JWT y gestión de idiomas
 - [x] Importar texto pegado, URL de artículo y archivos TXT/SRT/VTT
 - [x] Lector con palabras clicables, panel de traducción y frases
-- [x] Guardar LingQs y estados de palabra
+- [x] Guardar Jellies y estados de palabra
 
 **Fase 2 - YouTube**
 - [x] Importar video por URL con metadatos
@@ -655,7 +653,7 @@ Genera secretos con `openssl rand -hex 64`. No subas `.env` al repositorio (ya e
 - Respeta los [Términos de Servicio de YouTube](https://www.youtube.com/t/terms) y la política de su API.
 - Las transcripciones y los artículos pertenecen a sus autores: úsalos para el estudio personal y no los publiques como contenido propio.
 - La importación de artículos bloquea direcciones de red privadas para evitar SSRF, pero si despliegas el proyecto públicamente revisa también límites de uso.
-- **Extensión del navegador:** obtiene los subtítulos llamando, desde tu navegador, a la API interna del reproductor de YouTube con el cliente de Android (como el importador de LingQ). Evita que el servidor haga scraping, pero **no es una vía aprobada por YouTube**: es la misma técnica que `yt-dlp` y sus términos restringen el acceso automatizado. Úsala para estudio personal.
+- **Extensión del navegador:** obtiene los subtítulos llamando, desde tu navegador, a la API interna del reproductor de YouTube con el cliente de Android. Evita que el servidor haga scraping, pero **no es una vía aprobada por YouTube**: es la misma técnica que `yt-dlp` y sus términos restringen el acceso automatizado. Úsala para estudio personal.
 - **Subtítulos y metadatos con `yt-dlp`:** es la parte que no es oficial. Puedes apagarla con `YTDLP_ENABLED=false`. La API oficial de YouTube solo permite descargar los subtítulos de videos de los que eres propietario, así que para videos ajenos no hay alternativa oficial. Obtenerlos con `yt-dlp` puede chocar con los Términos de Servicio de YouTube; úsalo solo para estudio personal y revisa este punto antes de desplegar el proyecto públicamente. La subida manual de SRT/VTT no depende de YouTube.
 - `yt-dlp` puede dejar de funcionar si YouTube cambia su sitio: actualiza la imagen con regularidad y mantén la subida manual de subtítulos como alternativa.
 

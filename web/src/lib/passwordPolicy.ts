@@ -6,7 +6,7 @@ export const PASSWORD_MIN_LENGTH = 10;
 const COMMON = [
     "password", "passw0rd", "contrasena", "contraseña", "qwerty", "asdfgh", "zxcvbn", "azerty", "123456", "654321",
     "abcdef", "abc123", "letmein", "welcome", "bienvenido", "iloveyou", "teamo", "admin", "administrador", "usuario",
-    "jellylang", "lingq", "monkey", "dragon", "football", "futbol", "sunshine", "princess", "master", "superman", "batman",
+    "jellylang", "monkey", "dragon", "football", "futbol", "sunshine", "princess", "master", "superman", "batman",
 ];
 
 /** Reglas que siempre se muestran, y las que solo aparecen cuando se incumplen */

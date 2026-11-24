@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { api } from "../api/client";
-import type { LessonDetail, Lingq, PhraseEntry, VocabEntry, WordStatus } from "../api/types";
+import type { LessonDetail, Jelly, PhraseEntry, VocabEntry, WordStatus } from "../api/types";
 
 interface EntryResponse {
     entry: VocabEntry;
 }
 
-export interface CreateLingqInput {
+export interface CreateJellyInput {
     term: string;
     meaning?: string;
     notes?: string;
@@ -30,7 +30,7 @@ export function useVocabulary(lesson: LessonDetail) {
 
     const invalidate = useCallback(() => {
         queryClient.invalidateQueries({ queryKey: ["stats"] });
-        queryClient.invalidateQueries({ queryKey: ["lingqs"] });
+        queryClient.invalidateQueries({ queryKey: ["jellies"] });
         queryClient.invalidateQueries({ queryKey: ["reviews"] });
     }, [queryClient]);
 
@@ -38,7 +38,7 @@ export function useVocabulary(lesson: LessonDetail) {
         if (entry.term.includes(" ")) {
             setPhrases((list) => {
                 const rest = list.filter((p) => p.term !== entry.term);
-                return entry.status === "new" || !entry.lingq_id ? rest : [...rest, entry as PhraseEntry];
+                return entry.status === "new" || !entry.jelly_id ? rest : [...rest, entry as PhraseEntry];
             });
             return;
         }
@@ -53,13 +53,13 @@ export function useVocabulary(lesson: LessonDetail) {
     const get = useCallback(
         (term: string): VocabEntry =>
             entries.get(term) ??
-            phrases.find((p) => p.term === term) ?? { term, status: "new", level: 0, lingq_id: null, meaning: null },
+            phrases.find((p) => p.term === term) ?? { term, status: "new", level: 0, jelly_id: null, meaning: null },
         [entries, phrases],
     );
 
-    const createLingq = useCallback(
-        async (input: CreateLingqInput) => {
-            const data = await api<EntryResponse & { lingq: Lingq }>("/lingqs", {
+    const createJelly = useCallback(
+        async (input: CreateJellyInput) => {
+            const data = await api<EntryResponse & { jelly: Jelly }>("/jellies", {
                 method: "POST",
                 body: { ...input, language_id: languageId, lesson_id: lesson.id },
             });
@@ -83,9 +83,9 @@ export function useVocabulary(lesson: LessonDetail) {
         [apply, invalidate, languageId],
     );
 
-    const updateLingq = useCallback(
+    const updateJelly = useCallback(
         async (id: number, changes: { meaning?: string; notes?: string; level?: number }) => {
-            const data = await api<EntryResponse>(`/lingqs/${id}`, { method: "PATCH", body: changes });
+            const data = await api<EntryResponse>(`/jellies/${id}`, { method: "PATCH", body: changes });
             apply(data.entry);
             invalidate();
             return data.entry;
@@ -93,9 +93,9 @@ export function useVocabulary(lesson: LessonDetail) {
         [apply, invalidate],
     );
 
-    const deleteLingq = useCallback(
+    const deleteJelly = useCallback(
         async (id: number) => {
-            const data = await api<EntryResponse>(`/lingqs/${id}`, { method: "DELETE" });
+            const data = await api<EntryResponse>(`/jellies/${id}`, { method: "DELETE" });
             apply(data.entry);
             invalidate();
         },
@@ -114,7 +114,7 @@ export function useVocabulary(lesson: LessonDetail) {
             });
             setEntries((map) => {
                 const next = new Map(map);
-                data.terms.forEach((term) => next.set(term, { term, status: "known", level: 1, lingq_id: null, meaning: null }));
+                data.terms.forEach((term) => next.set(term, { term, status: "known", level: 1, jelly_id: null, meaning: null }));
                 return next;
             });
             invalidate();
@@ -123,8 +123,8 @@ export function useVocabulary(lesson: LessonDetail) {
     );
 
     return useMemo(
-        () => ({ entries, phrases, get, createLingq, setStatus, updateLingq, deleteLingq, markKnown }),
-        [entries, phrases, get, createLingq, setStatus, updateLingq, deleteLingq, markKnown],
+        () => ({ entries, phrases, get, createJelly, setStatus, updateJelly, deleteJelly, markKnown }),
+        [entries, phrases, get, createJelly, setStatus, updateJelly, deleteJelly, markKnown],
     );
 }
 

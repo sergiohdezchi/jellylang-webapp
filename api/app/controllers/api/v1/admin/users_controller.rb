@@ -84,7 +84,7 @@ module Api
           scope.select(
             "users.*",
             "(SELECT COUNT(*) FROM lessons WHERE lessons.user_id = users.id) AS lessons_count",
-            "(SELECT COUNT(*) FROM lingqs WHERE lingqs.user_id = users.id) AS lingqs_count",
+            "(SELECT COUNT(*) FROM jellies WHERE jellies.user_id = users.id) AS jellies_count",
             "(SELECT MAX(date) FROM daily_stats WHERE daily_stats.user_id = users.id) AS last_active_on"
           )
         end
@@ -99,7 +99,7 @@ module Api
             email_verified: user.email_verified?,
             current_language: user.current_language&.code,
             lessons_count: user.lessons_count.to_i,
-            lingqs_count: user.lingqs_count.to_i,
+            jellies_count: user.jellies_count.to_i,
             last_active_on: user.last_active_on,
             created_at: user.created_at
           }

@@ -1,6 +1,6 @@
 module Stats
   module Summary
-    ACTIVE_SQL = "words_read + listening_seconds + new_lingqs + known_words + reviews > 0".freeze
+    ACTIVE_SQL = "words_read + listening_seconds + new_jellies + known_words + reviews > 0".freeze
 
     module_function
 
@@ -14,7 +14,7 @@ module Stats
       {
         language_id: language.id,
         known_words: known_words(user, language),
-        lingqs: user.lingqs.where(language: language).count,
+        jellies: user.jellies.where(language: language).count,
         due_reviews: due_reviews(user, language).count,
         words_read: totals[0].to_i,
         listening_seconds: totals[1].to_i,
@@ -30,10 +30,10 @@ module Stats
     end
 
     def due_reviews(user, language, now: Time.current)
-      user.lingqs.where(language: language)
-          .joins("INNER JOIN user_words ON user_words.word_id = lingqs.word_id AND user_words.user_id = lingqs.user_id")
+      user.jellies.where(language: language)
+          .joins("INNER JOIN user_words ON user_words.word_id = jellies.word_id AND user_words.user_id = jellies.user_id")
           .where(user_words: { status: "learning" })
-          .where(lingqs: { next_review_at: ..now })
+          .where(jellies: { next_review_at: ..now })
     end
 
     # Días consecutivos con actividad. Hoy cuenta si ya hubo actividad;

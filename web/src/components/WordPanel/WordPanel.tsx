@@ -32,7 +32,7 @@ export default function WordPanel({ selection, vocabulary, language, nativeLangu
     const [error, setError] = useState<string | null>(null);
     const [saved, setSaved] = useState(false);
     const meaningRef = useRef<HTMLTextAreaElement>(null);
-    const hasLingq = Boolean(entry.lingq_id);
+    const hasJelly = Boolean(entry.jelly_id);
 
     useEffect(() => {
         setMeaning(entry.meaning ?? "");
@@ -62,9 +62,9 @@ export default function WordPanel({ selection, vocabulary, language, nativeLangu
         }
     }
 
-    function createLingq(level = 1) {
+    function createJelly(level = 1) {
         return run(async () => {
-            const created = await vocabulary.createLingq({
+            const created = await vocabulary.createJelly({
                 term: selection.term,
                 meaning: meaning.trim() || suggestions[0] || "",
                 notes: notes.trim() || undefined,
@@ -72,13 +72,13 @@ export default function WordPanel({ selection, vocabulary, language, nativeLangu
                 segment_id: selection.segment.id,
                 video_time: selection.segment.start,
             });
-            if (level > 1 && created.lingq_id) await vocabulary.updateLingq(created.lingq_id, { level });
+            if (level > 1 && created.jelly_id) await vocabulary.updateJelly(created.jelly_id, { level });
         });
     }
 
     function setLevel(level: number) {
-        if (entry.status === "new") return createLingq(level);
-        if (hasLingq && entry.status === "learning") return run(() => vocabulary.updateLingq(entry.lingq_id!, { level }));
+        if (entry.status === "new") return createJelly(level);
+        if (hasJelly && entry.status === "learning") return run(() => vocabulary.updateJelly(entry.jelly_id!, { level }));
         return run(() => vocabulary.setStatus(selection.term, "learning", level));
     }
 
@@ -87,8 +87,8 @@ export default function WordPanel({ selection, vocabulary, language, nativeLangu
     }
 
     async function saveMeaning() {
-        if (!entry.lingq_id || meaning.trim() === (entry.meaning ?? "")) return;
-        await run(() => vocabulary.updateLingq(entry.lingq_id!, { meaning: meaning.trim() }));
+        if (!entry.jelly_id || meaning.trim() === (entry.meaning ?? "")) return;
+        await run(() => vocabulary.updateJelly(entry.jelly_id!, { meaning: meaning.trim() }));
         setSaved(true);
     }
 
@@ -221,13 +221,13 @@ export default function WordPanel({ selection, vocabulary, language, nativeLangu
                     </div>
                 )}
 
-                {!hasLingq && (
+                {!hasJelly && (
                     <>
                         <label className={styles.section}>
                             <span className={styles.label}>{t("panel.notes")}</span>
                             <textarea className="textarea" rows={2} placeholder={t("panel.notes_placeholder")} value={notes} onChange={(e) => setNotes(e.target.value)} />
                         </label>
-                        <button className="btn primary" style={{ width: "100%" }} onClick={() => createLingq()} disabled={busy}>
+                        <button className="btn primary" style={{ width: "100%" }} onClick={() => createJelly()} disabled={busy}>
                             <Icon name="plus" /> {t("panel.create")}
                         </button>
                     </>
@@ -276,9 +276,9 @@ export default function WordPanel({ selection, vocabulary, language, nativeLangu
                     </div>
                 </div>
 
-                {hasLingq && (
-                    <button className="btn ghost danger small" onClick={() => run(() => vocabulary.deleteLingq(entry.lingq_id!))} disabled={busy}>
-                        <Icon name="trash" size={14} /> {t("panel.delete_lingq")}
+                {hasJelly && (
+                    <button className="btn ghost danger small" onClick={() => run(() => vocabulary.deleteJelly(entry.jelly_id!))} disabled={busy}>
+                        <Icon name="trash" size={14} /> {t("panel.delete_jelly")}
                     </button>
                 )}
 

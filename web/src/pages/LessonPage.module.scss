@@ -64,7 +64,7 @@
 }
 
 .legendNew,
-.legendLingq {
+.legendJelly {
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -81,7 +81,7 @@
     background: var(--word-new);
 }
 
-.legendLingq::before {
+.legendJelly::before {
     background: var(--word-l1);
 }
 

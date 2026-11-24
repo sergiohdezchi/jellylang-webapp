@@ -8,7 +8,7 @@ export async function getSettings() {
 
 export const saveSettings = (settings) => chrome.storage.local.set(settings);
 
-// Preferencias del formulario, como en el importador de LingQ: último idioma, "abrir al terminar"
+// Preferencias del formulario: último idioma, "abrir al terminar"
 // y, por idioma, el último curso y nivel elegidos.
 export async function getPrefs() {
     const { prefs } = await chrome.storage.local.get("prefs");

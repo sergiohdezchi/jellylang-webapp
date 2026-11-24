@@ -10,10 +10,10 @@ import { formatNumber } from "../lib/format";
 import Icon from "../components/Icon";
 import styles from "./StatsPage.module.scss";
 
-type Metric = "new_lingqs" | "words_read" | "known_words" | "listening" | "reviews";
+type Metric = "new_jellies" | "words_read" | "known_words" | "listening" | "reviews";
 
 const METRICS: { id: Metric; label: MessageKey; value: (d: DayStats) => number }[] = [
-    { id: "new_lingqs", label: "stats.metric_new_lingqs", value: (d) => d.new_lingqs },
+    { id: "new_jellies", label: "stats.metric_new_jellies", value: (d) => d.new_jellies },
     { id: "words_read", label: "stats.metric_words_read", value: (d) => d.words_read },
     { id: "known_words", label: "stats.metric_known_words", value: (d) => d.known_words },
     { id: "listening", label: "stats.metric_listening", value: (d) => Math.round(d.listening_seconds / 60) },
@@ -31,7 +31,7 @@ function niceMax(value: number): number {
 export default function StatsPage() {
     const language = useLanguage();
     const { t, locale } = useI18n();
-    const [metricId, setMetricId] = useState<Metric>("new_lingqs");
+    const [metricId, setMetricId] = useState<Metric>("new_jellies");
     const [hovered, setHovered] = useState<number | null>(null);
 
     const { data: stats, isLoading } = useQuery({
@@ -54,12 +54,12 @@ export default function StatsPage() {
     const max = niceMax(Math.max(...values));
     const dayLabel = (date: string) => new Date(`${date}T12:00:00`).toLocaleDateString(locale, { weekday: "short" });
     const fullDate = (date: string) => new Date(`${date}T12:00:00`).toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "short" });
-    const goalDone = stats.today.new_lingqs;
+    const goalDone = stats.today.new_jellies;
     const goalPct = Math.min(100, Math.round((goalDone / stats.daily_goal) * 100));
 
     const tiles = [
         { label: t("stats.known_words"), value: n(stats.known_words) },
-        { label: t("stats.lingqs"), value: n(stats.lingqs) },
+        { label: t("stats.jellies"), value: n(stats.jellies) },
         { label: t("stats.streak"), value: t("stats.days", { count: stats.streak }), icon: "flame" as const },
         { label: t("stats.words_read"), value: n(stats.words_read) },
         { label: t("stats.listening"), value: (stats.listening_seconds / 3600).toLocaleString(locale, { maximumFractionDigits: 1 }) },

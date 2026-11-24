@@ -83,7 +83,7 @@ export default function TextReader({ lesson, language, prepared, vocabulary, sel
         else setPage(target);
     }, [playback.activeIndex]);
 
-    /** Avanza de página: las palabras azules de la página actual pasan a conocidas (como en LingQ). */
+    /** Avanza de página: las palabras azules de la página actual pasan a conocidas. */
     async function advance(target: number, fromPlayback = false) {
         if (busyRef.current) return;
         busyRef.current = true;

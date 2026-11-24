@@ -20,7 +20,7 @@ module Api
               processing: Lesson.where(status: "processing").count,
               failed: Lesson.where(status: "failed").count
             },
-            lingqs: Lingq.count,
+            jellies: Jelly.count,
             reviews_this_week: DailyStat.where(date: week).sum(:reviews),
             languages: Language.enabled.count,
             failed_imports: failed_imports

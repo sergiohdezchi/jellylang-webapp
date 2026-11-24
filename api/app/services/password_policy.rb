@@ -9,7 +9,7 @@ module PasswordPolicy
   # Palabras y secuencias que hacen fácil de adivinar una contraseña aunque cumpla el resto
   COMMON = %w[
     password passw0rd contrasena contraseña qwerty asdfgh zxcvbn azerty 123456 654321 abcdef abc123
-    letmein welcome bienvenido iloveyou teamo admin administrador usuario jellylang lingq
+    letmein welcome bienvenido iloveyou teamo admin administrador usuario jellylang
     monkey dragon football futbol sunshine princess master superman batman
   ].freeze
 

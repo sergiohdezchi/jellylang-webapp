@@ -1,5 +1,5 @@
 class DailyStat < ApplicationRecord
-  COUNTERS = %i[words_read listening_seconds new_lingqs known_words reviews].freeze
+  COUNTERS = %i[words_read listening_seconds new_jellies known_words reviews].freeze
 
   belongs_to :user
   belongs_to :language

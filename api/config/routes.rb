@@ -32,7 +32,7 @@ Rails.application.routes.draw do
       # Importación desde fuentes externas (la extensión del navegador envía aquí los subtítulos)
       post "imports", to: "imports#create"
 
-      resources :lingqs, only: %i[index create update destroy] do
+      resources :jellies, only: %i[index create update destroy] do
         get :export, on: :collection
       end
 

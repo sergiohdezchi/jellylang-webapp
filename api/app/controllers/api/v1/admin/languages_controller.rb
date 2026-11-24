@@ -40,7 +40,7 @@ module Api
         private
 
         def in_use?(language)
-          [UserLanguage, Lesson, Course, Lingq, DailyStat].any? { |model| model.where(language_id: language.id).exists? } ||
+          [UserLanguage, Lesson, Course, Jelly, DailyStat].any? { |model| model.where(language_id: language.id).exists? } ||
             User.where(current_language_id: language.id).exists?
         end
 

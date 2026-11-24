@@ -10,7 +10,7 @@ export default function AuthShell({ children }: { children: ReactNode }) {
             <section className={styles.hero}>
                 <h1>{t("app.tagline")}</h1>
                 <p className={styles.sample}>
-                    The <span className={styles.lingq}>lighthouse</span> keeper climbed the{" "}
+                    The <span className={styles.highlightWord}>lighthouse</span> keeper climbed the{" "}
                     <span className={styles.new}>spiral</span> stairs as the storm{" "}
                     <span className={styles.new}>rattled</span> the windows.
                 </p>

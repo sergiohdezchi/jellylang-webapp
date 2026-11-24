@@ -1,6 +1,9 @@
 require "spec_helper"
 # Siempre en test, aunque el contenedor defina RAILS_ENV=development.
 ENV["RAILS_ENV"] = "test"
+# Sin captcha salvo en captcha_spec, aunque el contenedor traiga las claves de prueba de Google.
+ENV["RECAPTCHA_SITE_KEY"] = ""
+ENV["RECAPTCHA_SECRET_KEY"] = ""
 require_relative "../config/environment"
 require "rspec/rails"
 require "webmock/rspec"

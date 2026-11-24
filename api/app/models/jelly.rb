@@ -1,4 +1,4 @@
-class Lingq < ApplicationRecord
+class Jelly < ApplicationRecord
   belongs_to :user
   belongs_to :word
   belongs_to :language

@@ -1,4 +1,4 @@
 class ReviewLog < ApplicationRecord
   belongs_to :user
-  belongs_to :lingq
+  belongs_to :jelly
 end

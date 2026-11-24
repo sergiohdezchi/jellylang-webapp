@@ -1,6 +1,6 @@
 # Jellylang Importer (extensión del navegador)
 
-Importa videos de YouTube con sus subtítulos a tu biblioteca de Jellylang. Sigue el mismo esquema que el importador de LingQ: usa la sesión que ya tienes abierta en la web y obtiene los subtítulos desde tu navegador.
+Importa videos de YouTube con sus subtítulos a tu biblioteca de Jellylang. Usa la sesión que ya tienes abierta en la web y obtiene los subtítulos desde tu navegador.
 
 Funciona en Chrome, Edge y Brave (Manifest V3, Chrome 111 o superior). No tiene dependencias ni paso de compilación.
 

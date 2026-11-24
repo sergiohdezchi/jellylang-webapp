@@ -27,7 +27,7 @@ export default function OverviewTab() {
             detail: t("admin.processing_count", { count: data.lessons.processing }),
             warn: data.lessons.failed > 0,
         },
-        { label: t("stats.lingqs"), value: n(data.lingqs), detail: t("admin.reviews_week", { count: n(data.reviews_this_week) }) },
+        { label: t("stats.jellies"), value: n(data.jellies), detail: t("admin.reviews_week", { count: n(data.reviews_this_week) }) },
         { label: t("admin.tab_languages"), value: n(data.languages), detail: t("admin.languages_enabled") },
     ];
 
