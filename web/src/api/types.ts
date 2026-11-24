@@ -150,6 +150,8 @@ export interface AppConfig {
     /** Cualquiera puede crear una cuenta */
     signups_enabled: boolean;
     import_sources: string[];
+    /** Clave pública de reCAPTCHA; null si no está activado */
+    captcha_site_key: string | null;
 }
 
 // ---- Panel de administración ----------------------------------------------------------------

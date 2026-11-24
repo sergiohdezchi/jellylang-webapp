@@ -1,9 +1,10 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth, type PendingVerification } from "../auth/AuthContext";
 import { useI18n } from "../i18n/I18nProvider";
 import { useConfig } from "../hooks/useConfig";
 import { useLanguages } from "../hooks/useLanguages";
+import Captcha, { type CaptchaHandle } from "../components/Captcha/Captcha";
 import PasswordField from "../components/PasswordField/PasswordField";
 import { isPasswordValid } from "../lib/passwordPolicy";
 import AuthShell from "./AuthShell";
@@ -20,6 +21,9 @@ export default function SignupPage() {
     const [form, setForm] = useState({ email: "", password: "", name: "", native_language: locale as string, study_language_id: "" });
     const [error, setError] = useState<string | null>(null);
     const [busy, setBusy] = useState(false);
+    const [captcha, setCaptcha] = useState<string | null>(null);
+    const captchaRef = useRef<CaptchaHandle>(null);
+    const siteKey = config?.captcha_site_key ?? null;
     const [triedSubmit, setTriedSubmit] = useState(false);
     const [pending, setPending] = useState<PendingVerification | null>(null);
 
@@ -43,12 +47,13 @@ export default function SignupPage() {
         setBusy(true);
         setError(null);
         try {
-            const result = await signup({ ...form, ui_language: locale, study_language_id: Number(form.study_language_id) });
+            const result = await signup({ ...form, ui_language: locale, study_language_id: Number(form.study_language_id), captcha_token: captcha });
             if (result) setPending(result);
             else navigate("/", { replace: true });
         } catch (err) {
             setError(err instanceof Error ? err.message : t("common.error"));
         } finally {
+            captchaRef.current?.reset();
             setBusy(false);
         }
     }
@@ -106,7 +111,8 @@ export default function SignupPage() {
                         </select>
                     </label>
                 </div>
-                <button className={`btn primary ${styles.submit}`} disabled={busy}>
+                {siteKey && <Captcha ref={captchaRef} siteKey={siteKey} onChange={setCaptcha} />}
+                <button className={`btn primary ${styles.submit}`} disabled={busy || (Boolean(siteKey) && !captcha)}>
                     {t("auth.signup.submit")}
                 </button>
             </form>

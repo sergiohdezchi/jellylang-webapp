@@ -200,6 +200,15 @@ Se validan en la API (`api/app/services/password_policy.rb`) y la web muestra la
 
 Se aplican al registrarse, al crear un usuario desde el panel y al cambiar una contraseña. Las cuentas que ya existían siguen entrando con su contraseña actual. Las contraseñas se guardan con bcrypt (`has_secure_password`), y el login responde con un mensaje genérico que no revela si el email existe.
 
+### reCAPTCHA
+
+Registro, login y «olvidé mi contraseña» piden **reCAPTCHA v2** («No soy un robot»). La API verifica el token con Google antes de hacer nada (`api/app/services/captcha.rb`); si Google lo niega o no responde, devuelve `422 captcha_failed`. Cada token sirve una sola vez, por eso la web reinicia la casilla tras cada envío. Verificar el código del correo y cambiar la contraseña no lo piden: ya exigen la contraseña o el código.
+
+- **Producción:** crea las claves en https://www.google.com/recaptcha/admin (tipo *Desafío (v2) > Casilla «No soy un robot»*), añade tu dominio y define `RECAPTCHA_SITE_KEY` y `RECAPTCHA_SECRET_KEY` en `.env`. La clave del sitio llega a la web desde `GET /config` (no hay que recompilar). **Sin las dos claves no se pide captcha.**
+- **Desarrollo:** `docker-compose.yml` usa las claves de prueba de Google, que siempre aprueban y muestran el aviso «solo para pruebas». Para probar con las reales, defínelas en `.env`.
+- La web carga el script de Google (`google.com/recaptcha`); si tienes una política CSP, permite `google.com` y `gstatic.com`.
+- Los límites por IP y los bloqueos de código siguen activos aparte del captcha.
+
 ### Importación con la extensión del navegador
 
 La extensión ([extension/](extension/README.md)) es la forma recomendada de importar videos de YouTube. Sigue el mismo esquema que el importador de LingQ y funciona desde tu navegador, **sin que el servidor consulte a YouTube**:

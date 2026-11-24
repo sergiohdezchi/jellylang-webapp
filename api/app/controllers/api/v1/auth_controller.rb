@@ -18,6 +18,9 @@ module Api
       rate_limit to: 5, within: 10.minutes, only: :forgot_password, name: "forgot", with: -> { too_many_requests(10) }
       rate_limit to: 10, within: 10.minutes, only: :reset_password, name: "reset", with: -> { too_many_requests(10) }
 
+      # reCAPTCHA en las acciones que abren la puerta a abusos: crear cuentas, probar contraseñas y pedir correos
+      before_action :verify_captcha!, only: %i[signup login forgot_password]
+
       # La cuenta queda pendiente hasta que se introduce el código enviado por email: no hay registros sin correo.
       def signup
         unless Features.signups_enabled?
@@ -147,6 +150,12 @@ module Api
       end
 
       private
+
+      def verify_captcha!
+        return if Captcha.verify?(params[:captcha_token], ip: request.remote_ip)
+
+        render_error(I18n.t("errors.captcha_failed"), :unprocessable_entity, code: "captcha_failed")
+      end
 
       # Mensaje genérico: no revela si el email existe
       def authenticate_credentials!

@@ -25,17 +25,18 @@ export interface SignupData {
     native_language: string;
     ui_language: string;
     study_language_id: number;
+    captcha_token?: string | null;
 }
 
 interface AuthContextValue {
     user: User | null;
     loading: boolean;
     language: Language | null;
-    login: (email: string, password: string) => Promise<void>;
+    login: (email: string, password: string, captchaToken?: string | null) => Promise<void>;
     /** Devuelve el registro pendiente si hay que confirmar el email; null si ya inició sesión */
     signup: (data: SignupData) => Promise<PendingVerification | null>;
     /** Recuperar contraseña, paso 1: envía el código al email (responde igual exista o no la cuenta) */
-    forgotPassword: (email: string) => Promise<PendingVerification>;
+    forgotPassword: (email: string, captchaToken?: string | null) => Promise<PendingVerification>;
     /** Paso 2: cambia la contraseña con el código e inicia sesión */
     resetPassword: (email: string, code: string, password: string) => Promise<void>;
     verifyEmail: (email: string, password: string, code: string) => Promise<void>;
@@ -69,8 +70,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             .finally(() => setLoading(false));
     }, [logout]);
 
-    const login = useCallback(async (email: string, password: string) => {
-        const data = await api<AuthResponse>("/auth/login", { method: "POST", body: { email, password } });
+    const login = useCallback(async (email: string, password: string, captchaToken?: string | null) => {
+        const data = await api<AuthResponse>("/auth/login", { method: "POST", body: { email, password, captcha_token: captchaToken } });
         setToken(data.token);
         setUser(data.user);
     }, []);
@@ -97,8 +98,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         [startSession],
     );
 
-    const forgotPassword = useCallback(async (email: string) => {
-        const data = await api<{ email: string; resend_in: number }>("/auth/forgot_password", { method: "POST", body: { email } });
+    const forgotPassword = useCallback(async (email: string, captchaToken?: string | null) => {
+        const data = await api<{ email: string; resend_in: number }>("/auth/forgot_password", {
+            method: "POST",
+            body: { email, captcha_token: captchaToken },
+        });
         return { verification_required: true as const, ...data };
     }, []);
 

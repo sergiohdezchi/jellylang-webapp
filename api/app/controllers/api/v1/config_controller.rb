@@ -8,6 +8,7 @@ module Api
         render json: {
           ytdlp_enabled: Features.ytdlp_enabled?,
           signups_enabled: Features.signups_available?,
+          captcha_site_key: Captcha.enabled? ? Captcha.site_key : nil,
           import_sources: Imports::Video::SOURCES
         }
       end

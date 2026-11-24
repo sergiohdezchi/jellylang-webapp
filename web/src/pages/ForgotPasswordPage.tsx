@@ -1,9 +1,11 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ApiError } from "../api/client";
 import { useAuth } from "../auth/AuthContext";
 import { useI18n } from "../i18n/I18nProvider";
 import Icon from "../components/Icon";
+import Captcha, { type CaptchaHandle } from "../components/Captcha/Captcha";
+import { useConfig } from "../hooks/useConfig";
 import PasswordField from "../components/PasswordField/PasswordField";
 import { isPasswordValid } from "../lib/passwordPolicy";
 import AuthShell from "./AuthShell";
@@ -23,6 +25,10 @@ export default function ForgotPasswordPage() {
     const [error, setError] = useState<string | null>(null);
     const [notice, setNotice] = useState<string | null>(null);
     const [busy, setBusy] = useState(false);
+    const { data: config } = useConfig();
+    const siteKey = config?.captcha_site_key ?? null;
+    const [captcha, setCaptcha] = useState<string | null>(null);
+    const captchaRef = useRef<CaptchaHandle>(null);
     const [tried, setTried] = useState(false);
     const [resendAt, setResendAt] = useState(0);
     const [lockedUntil, setLockedUntil] = useState(0);
@@ -53,7 +59,7 @@ export default function ForgotPasswordPage() {
         setError(null);
         setNotice(null);
         try {
-            const data = await forgotPassword(email.trim());
+            const data = await forgotPassword(email.trim(), captcha);
             setResendAt(Date.now() + data.resend_in * 1000);
             setNow(Date.now());
             setStep("reset");
@@ -61,13 +67,9 @@ export default function ForgotPasswordPage() {
         } catch (err) {
             fail(err);
         } finally {
+            captchaRef.current?.reset();
             setBusy(false);
         }
-    }
-
-    async function resend() {
-        await sendCode();
-        setNotice(t("auth.verify.resent"));
     }
 
     async function submitReset(event: FormEvent) {
@@ -98,7 +100,8 @@ export default function ForgotPasswordPage() {
                         <span>{t("auth.email")}</span>
                         <input className="input" type="email" autoComplete="email" required autoFocus value={email} onChange={(e) => setEmail(e.target.value)} />
                     </label>
-                    <button className={`btn primary ${styles.submit}`} disabled={busy}>
+                    {siteKey && <Captcha ref={captchaRef} siteKey={siteKey} onChange={setCaptcha} />}
+                    <button className={`btn primary ${styles.submit}`} disabled={busy || (Boolean(siteKey) && !captcha)}>
                         {t("auth.forgot.send")}
                     </button>
                 </form>
@@ -153,7 +156,7 @@ export default function ForgotPasswordPage() {
                 </form>
                 <p className={styles.resend}>
                     {t("auth.verify.not_received")}{" "}
-                    <button type="button" className={styles.linkButton} onClick={resend} disabled={wait > 0 || locked || busy}>
+                    <button type="button" className={styles.linkButton} onClick={() => setStep("email")} disabled={wait > 0 || locked || busy}>
                         {wait > 0 ? t("auth.verify.resend_in", { seconds: wait }) : t("auth.verify.resend")}
                     </button>
                 </p>

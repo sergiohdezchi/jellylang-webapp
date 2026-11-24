@@ -1,9 +1,10 @@
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ApiError } from "../api/client";
 import { useAuth, type PendingVerification } from "../auth/AuthContext";
 import { useI18n } from "../i18n/I18nProvider";
 import { useConfig } from "../hooks/useConfig";
+import Captcha, { type CaptchaHandle } from "../components/Captcha/Captcha";
 import PasswordField from "../components/PasswordField/PasswordField";
 import AuthShell from "./AuthShell";
 import VerifyEmailStep from "./VerifyEmailStep";
@@ -19,6 +20,9 @@ export default function LoginPage() {
     const [error, setError] = useState<string | null>(null);
     const { data: config } = useConfig();
     const [busy, setBusy] = useState(false);
+    const [captcha, setCaptcha] = useState<string | null>(null);
+    const captchaRef = useRef<CaptchaHandle>(null);
+    const siteKey = config?.captcha_site_key ?? null;
     const [pending, setPending] = useState<PendingVerification | null>(null);
 
     async function handleSubmit(event: FormEvent) {
@@ -26,7 +30,7 @@ export default function LoginPage() {
         setBusy(true);
         setError(null);
         try {
-            await login(email, password);
+            await login(email, password, captcha);
             navigate((location.state as { from?: string } | null)?.from ?? "/", { replace: true });
         } catch (err) {
             // Registro sin terminar: la API ya envió (o tiene vigente) un código
@@ -36,6 +40,7 @@ export default function LoginPage() {
             }
             setError(err instanceof Error ? err.message : t("common.error"));
         } finally {
+            captchaRef.current?.reset();
             setBusy(false);
         }
     }
@@ -58,12 +63,13 @@ export default function LoginPage() {
                     <input className="input" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
                 </label>
                 <PasswordField label={t("auth.password")} autoComplete="current-password" value={password} onChange={setPassword} />
+                {siteKey && <Captcha ref={captchaRef} siteKey={siteKey} onChange={setCaptcha} />}
                 <div className={styles.forgot}>
                     <Link to="/forgot-password" state={{ email }}>
                         {t("auth.forgot.link")}
                     </Link>
                 </div>
-                <button className={`btn primary ${styles.submit}`} disabled={busy}>
+                <button className={`btn primary ${styles.submit}`} disabled={busy || (Boolean(siteKey) && !captcha)}>
                     {t("auth.login.submit")}
                 </button>
             </form>
