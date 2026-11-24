@@ -207,6 +207,14 @@ Registro, login y «olvidé mi contraseña» piden **reCAPTCHA v2** («No soy un
 - La web carga el script de Google (`google.com/recaptcha`); si tienes una política CSP, permite `google.com` y `gstatic.com`.
 - Los límites por IP y los bloqueos de código siguen activos aparte del captcha.
 
+### Iniciar sesión con Google
+
+El login muestra el botón oficial de Google (Google Identity Services). La web recibe un token de Google y lo envía a `POST /auth/google`; la API lo valida con Google (`api/app/services/google_auth.rb`: audiencia, emisor y correo verificado). Si el correo **ya tiene cuenta, entra en esa misma cuenta** (también si se registró con contraseña); si no existe, se crea ya verificada, con una contraseña aleatoria, y la persona elige su idioma de estudio en Ajustes. Si el registro está cerrado no se crean cuentas nuevas, pero las existentes siguen entrando. Una cuenta sin confirmar con ese correo se confirma y pierde la contraseña con la que se registró.
+
+- **Producción:** crea un *ID de cliente de OAuth* (tipo *Aplicación web*) en https://console.cloud.google.com/apis/credentials, añade tu dominio en *Orígenes autorizados de JavaScript* y define `GOOGLE_CLIENT_ID` en `.env`. **Sin él no aparece el botón.**
+- **Desarrollo:** añade `http://localhost:5173` a los orígenes autorizados y define `GOOGLE_CLIENT_ID` en `.env`.
+- Si tienes una política CSP, permite `accounts.google.com` y `gstatic.com`.
+
 ### Importación con la extensión del navegador
 
 La extensión ([extension/](extension/README.md)) es la forma recomendada de importar videos de YouTube. Funciona desde tu navegador, **sin que el servidor consulte a YouTube**:
@@ -328,6 +336,7 @@ Todas las rutas cuelgan de `/api/v1` y, salvo registro, login e idiomas, requier
 | POST | `/auth/signup` | Registro. Con correo configurado responde `202` y envía un código; si no, devuelve el JWT |
 | POST | `/auth/verify_email` | `email`, `password` y `code`: confirma el email y devuelve el JWT |
 | POST | `/auth/resend_code` | `email` y `password`: envía otro código (máximo uno por minuto) |
+| POST | `/auth/google` | `credential` (token de Google): inicia sesión, o crea la cuenta si el correo es nuevo |
 | POST | `/auth/forgot_password` | `email`: envía un código para cambiar la contraseña (responde igual exista o no la cuenta) |
 | POST | `/auth/reset_password` | `email`, `code` y `password`: cambia la contraseña e inicia sesión |
 | POST | `/auth/login` | Login (devuelve JWT; `403 email_not_verified` si falta confirmar el email) |

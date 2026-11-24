@@ -152,6 +152,7 @@ export interface AppConfig {
     import_sources: string[];
     /** Clave pública de reCAPTCHA; null si no está activado */
     captcha_site_key: string | null;
+    google_client_id: string | null;
 }
 
 // ---- Panel de administración ----------------------------------------------------------------

@@ -5,13 +5,15 @@ import { useAuth, type PendingVerification } from "../auth/AuthContext";
 import { useI18n } from "../i18n/I18nProvider";
 import { useConfig } from "../hooks/useConfig";
 import Captcha, { type CaptchaHandle } from "../components/Captcha/Captcha";
+import GoogleButton from "../components/GoogleButton/GoogleButton";
 import PasswordField from "../components/PasswordField/PasswordField";
 import AuthShell from "./AuthShell";
 import VerifyEmailStep from "./VerifyEmailStep";
 import styles from "./Auth.module.scss";
 
 export default function LoginPage() {
-    const { login } = useAuth();
+    const { login, loginWithGoogle } = useAuth();
+    const { locale } = useI18n();
     const { t } = useI18n();
     const navigate = useNavigate();
     const location = useLocation();
@@ -45,6 +47,19 @@ export default function LoginPage() {
         }
     }
 
+    async function handleGoogle(credential: string) {
+        setBusy(true);
+        setError(null);
+        try {
+            await loginWithGoogle(credential, locale);
+            navigate((location.state as { from?: string } | null)?.from ?? "/", { replace: true });
+        } catch (err) {
+            setError(err instanceof Error ? err.message : t("common.error"));
+        } finally {
+            setBusy(false);
+        }
+    }
+
     if (pending) {
         return (
             <AuthShell>
@@ -73,6 +88,14 @@ export default function LoginPage() {
                     {t("auth.login.submit")}
                 </button>
             </form>
+            {config?.google_client_id && (
+                <>
+                    <div className={styles.divider}>{t("auth.or")}</div>
+                    <div className={styles.google}>
+                        <GoogleButton clientId={config.google_client_id} onCredential={handleGoogle} />
+                    </div>
+                </>
+            )}
             <p className={styles.footer} hidden={config?.signups_enabled === false}>
                 {t("auth.no_account")} <Link to="/signup">{t("auth.signup.submit")}</Link>
             </p>

@@ -12,6 +12,7 @@ Rails.application.routes.draw do
       post "auth/verify_email", to: "auth#verify_email"
       post "auth/resend_code", to: "auth#resend_code"
       post "auth/forgot_password", to: "auth#forgot_password"
+      post "auth/google", to: "auth#google"
       post "auth/reset_password", to: "auth#reset_password"
       get "auth/me", to: "auth#me"
       patch "auth/me", to: "auth#update"

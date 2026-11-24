@@ -7,7 +7,7 @@ module Api
       # La API NO la acepta para autenticar (sigue exigiendo "Authorization: Bearer"), así que no abre la puerta a CSRF.
       SESSION_COOKIE = "jellylang_token".freeze
 
-      skip_before_action :authenticate!, only: %i[signup login verify_email resend_code forgot_password reset_password destroy_session]
+      skip_before_action :authenticate!, only: %i[signup login verify_email resend_code forgot_password reset_password google destroy_session]
 
       # Frena la fuerza bruta por IP (se cuenta en Redis). Aparte, cada código admite pocos intentos
       # y al agotarlos la cuenta queda bloqueada un rato (EmailVerifiable::LOCKOUT).
@@ -17,6 +17,7 @@ module Api
       rate_limit to: 5, within: 10.minutes, only: :resend_code, name: "resend", with: -> { too_many_requests(10) }
       rate_limit to: 5, within: 10.minutes, only: :forgot_password, name: "forgot", with: -> { too_many_requests(10) }
       rate_limit to: 10, within: 10.minutes, only: :reset_password, name: "reset", with: -> { too_many_requests(10) }
+      rate_limit to: 20, within: 10.minutes, only: :google, name: "google", with: -> { too_many_requests(10) }
 
       # reCAPTCHA en las acciones que abren la puerta a abusos: crear cuentas, probar contraseñas y pedir correos
       before_action :verify_captcha!, only: %i[signup login forgot_password]
@@ -47,6 +48,35 @@ module Api
 
         send_code(user, :verification)
         render json: code_pending(user, :verification), status: :accepted
+      end
+
+      # Google ya confirma el correo, así que no hace falta código ni captcha. Si el correo ya tiene cuenta, entra en esa misma cuenta.
+      def google
+        profile = GoogleAuth.verify(params[:credential])
+        raise ApiError.new(I18n.t("errors.google_failed"), status: :unauthorized, code: "google_failed") unless profile
+
+        user = User.find_by("lower(email) = ?", profile[:email])
+        if user
+          raise ApiError.new(I18n.t("errors.account_disabled"), status: :forbidden, code: "account_disabled") if user.disabled?
+
+          # Una cuenta sin confirmar pudo crearla otra persona con ese correo: Google demuestra quién es el dueño,
+          # así que se confirma y se descarta la contraseña con la que se registró.
+          unless user.email_verified?
+            user.update!(password: PasswordPolicy.generate, email_verified_at: Time.current, verification_code_digest: nil, verification_attempts: 0)
+          end
+        else
+          unless Features.signups_enabled?
+            raise ApiError.new(I18n.t("errors.signups_disabled"), status: :forbidden, code: "signups_disabled")
+          end
+
+          ui_language = User::UI_LANGUAGES.include?(params[:ui_language].to_s) ? params[:ui_language].to_s : "es"
+          user = User.create!(
+            email: profile[:email], name: profile[:name], password: PasswordPolicy.generate,
+            ui_language: ui_language, native_language: params[:native_language].presence || ui_language,
+            email_verified_at: Time.current
+          )
+        end
+        render_session(user)
       end
 
       def login

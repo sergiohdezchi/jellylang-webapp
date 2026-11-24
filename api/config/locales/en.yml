@@ -7,6 +7,7 @@ en:
     signups_disabled: "Sign-ups are closed. Ask an administrator to create an account for you."
     account_disabled: "Your account is disabled. Contact an administrator."
     captcha_failed: "Confirm you're not a robot and try again."
+    google_failed: "Couldn't sign in with Google. Please try again."
     email_not_verified: "Confirm your email to finish signing up. We sent you a code."
     rate_limited:
       one: "Too many attempts. Wait 1 minute and try again."

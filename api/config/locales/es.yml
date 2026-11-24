@@ -12,6 +12,7 @@ es:
     signups_disabled: "Los registros están cerrados. Pide a un administrador que te cree una cuenta."
     account_disabled: "Tu cuenta está desactivada. Contacta con un administrador."
     captcha_failed: "Confirma que no eres un robot e inténtalo de nuevo."
+    google_failed: "No se pudo iniciar sesión con Google. Inténtalo de nuevo."
     email_not_verified: "Confirma tu email para terminar el registro. Te enviamos un código."
     rate_limited:
       one: "Demasiados intentos. Espera 1 minuto y vuelve a probar."

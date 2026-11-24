@@ -33,6 +33,8 @@ interface AuthContextValue {
     loading: boolean;
     language: Language | null;
     login: (email: string, password: string, captchaToken?: string | null) => Promise<void>;
+    /** Entra con el token de Google; crea la cuenta si el correo es nuevo */
+    loginWithGoogle: (credential: string, uiLanguage: string) => Promise<void>;
     /** Devuelve el registro pendiente si hay que confirmar el email; null si ya inició sesión */
     signup: (data: SignupData) => Promise<PendingVerification | null>;
     /** Recuperar contraseña, paso 1: envía el código al email (responde igual exista o no la cuenta) */
@@ -80,6 +82,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setToken(data.token);
         setUser(data.user);
     }, []);
+
+    const loginWithGoogle = useCallback(
+        async (credential: string, uiLanguage: string) => {
+            startSession(await api<AuthResponse>("/auth/google", { method: "POST", body: { credential, ui_language: uiLanguage } }));
+        },
+        [startSession],
+    );
 
     const signup = useCallback(
         async (payload: SignupData) => {
@@ -135,8 +144,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 
     const value = useMemo(
-        () => ({ user, loading, language: user?.current_language ?? null, login, signup, verifyEmail, resendCode, forgotPassword, resetPassword, logout, updateUser }),
-        [user, loading, login, signup, verifyEmail, resendCode, forgotPassword, resetPassword, logout, updateUser],
+        () => ({ user, loading, language: user?.current_language ?? null, login, loginWithGoogle, signup, verifyEmail, resendCode, forgotPassword, resetPassword, logout, updateUser }),
+        [user, loading, login, loginWithGoogle, signup, verifyEmail, resendCode, forgotPassword, resetPassword, logout, updateUser],
     );
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

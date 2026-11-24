@@ -9,6 +9,7 @@ module Api
           ytdlp_enabled: Features.ytdlp_enabled?,
           signups_enabled: Features.signups_available?,
           captcha_site_key: Captcha.enabled? ? Captcha.site_key : nil,
+        google_client_id: GoogleAuth.enabled? ? GoogleAuth.client_id : nil,
           import_sources: Imports::Video::SOURCES
         }
       end

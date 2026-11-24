@@ -19,6 +19,7 @@ x-api: &api
     # reCAPTCHA: por defecto las claves de PRUEBA de Google (siempre aprueban, muestran un aviso). Para las reales, defínelas en .env
     RECAPTCHA_SITE_KEY: ${RECAPTCHA_SITE_KEY:-6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI}
     RECAPTCHA_SECRET_KEY: ${RECAPTCHA_SECRET_KEY:-6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe}
+    GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
   volumes:
     - ./api:/rails
     - bundle_cache:/usr/local/bundle
